@@ -72,9 +72,10 @@ void clusterConf(const std::vector<BoundingBox>& dbb,const std::vector<float>& d
 void evaluate();
 void learn(const cv::Mat& img);
 //Tools
-void buildGrid(const cv::Mat& img, const cv::Rect& box);
+//void buildGrid(const cv::Mat& img, const cv::Rect& box);
+void buildGrid(ScaleBox sbox, BoundingBox box);
 float bbOverlap(const BoundingBox& box1,const BoundingBox& box2);
-void getOverlappingBoxes(const cv::Rect& box1,int num_closest);
+void getOverlappingBoxes(int num_closest);
 void getBBHull();
 void getPattern(const cv::Mat& img, cv::Mat& pattern,cv::Scalar& mean,cv::Scalar& stdev);
 void bbPoints(std::vector<cv::Point2f>& points, const BoundingBox& bb);

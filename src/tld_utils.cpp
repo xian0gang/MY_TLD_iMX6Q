@@ -301,13 +301,13 @@ void my_resize(const unsigned char *dataSrc, unsigned char *dataDst,int src_widt
 
 	for (int i = 0; i < height; i++)
 	{
-		double srcY = i * yRatio;//源图像“虚”坐标的y值
+        double srcY = (i + 0.5) * yRatio - 0.5;//源图像“虚”坐标的y值
 		int IntY = (int)srcY;//向下取整
 		double v = srcY - IntY;//获取小数部分
 		double v1 = 1.0 - v;
 		for (int j = 0; j < width; j++)
 		{
-		    double srcX = j * xRatio;//源图像“虚”坐标的x值
+            double srcX = (j + 0.5) * xRatio - 0.5;//源图像“虚”坐标的x值
 		    int IntX = (int)srcX;//向下取整
 		    double u = srcX - IntX;//获取小数部分
 		    double u1 = 1.0 - u;

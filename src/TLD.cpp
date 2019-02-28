@@ -516,12 +516,21 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   //bb_file = fopen("bounding_boxes.txt","w");
   //Get Bounding Boxes
   //此函数根据传入的box（目标边界框）在传入的图像frame1中构建全部的扫描窗口，并计算重叠度
-    buildGrid(frame1,box);
+    //rewrite buildGrid
+    ScaleBox sbox;
+    sbox.width = frame1.cols;
+    sbox.height = frame1.rows;
+    BoundingBox bbox;
+    bbox.x = box.x;
+    bbox.y = box.y;
+    bbox.width = box.width;
+    bbox.height = box.height;
+    buildGrid(sbox,bbox);
     printf("Created %d bounding boxes\n",(int)grid.size());
   ///Preparation
   //allocation
-  iisum.create(frame1.rows+1,frame1.cols+1,CV_32F);
-  iisqsum.create(frame1.rows+1,frame1.cols+1,CV_64F);
+//  iisum.create(frame1.rows+1,frame1.cols+1,CV_32F);
+//  iisqsum.create(frame1.rows+1,frame1.cols+1,CV_64F);
   
   //Detector data中定义：std::vector<float> dconf;  检测确信度？？
   //vector 的reserve增加了vector的capacity，但是它的size没有改变！而resize改变了vector
@@ -551,7 +560,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   //同时，把重叠度小于0.2的，归入 bad_boxes 容器
   //首先根据overlap的比例信息选出重复区域比例大于60%并且前num_closet_init= 10个的最接近box的RectBox，
   //相当于对RectBox进行筛选。并通过BBhull函数得到这些RectBox的最大边界
-  getOverlappingBoxes(box,num_closest_init);
+  getOverlappingBoxes(num_closest_init);
   //printf("Found %d good boxes, %d bad boxes\n",(int)good_boxes.size(),(int)bad_boxes.size());
   //printf("Best Box: %d %d %d %d\n",best_box.x,best_box.y,best_box.width,best_box.height);
  // printf("Bounding box hull: %d %d %d %d\n",bbhull.x,bbhull.y,bbhull.width,bbhull.height);
@@ -1426,7 +1435,8 @@ void learn(const Mat& img)
   */
 }
 
-void buildGrid(const cv::Mat& img, const cv::Rect& box)
+//void buildGrid(const cv::Mat& img, const cv::Rect& box)
+void buildGrid(ScaleBox sbox, BoundingBox box)
 {
     const float SHIFT = 0.1;
     const float SCALES[] = {0.16151,0.19381,0.23257,0.27908,0.33490,0.40188,0.48225,
@@ -1442,25 +1452,25 @@ void buildGrid(const cv::Mat& img, const cv::Rect& box)
         width = round(box.width*SCALES[s]);
         height = round(box.height*SCALES[s]);
         min_bb_side = min(height,width);
-        if (min_bb_side < min_win || width > img.cols || height > img.rows)
+        if (min_bb_side < min_win || width > sbox.width || height > sbox.height)
             continue;
         scale.width = width;
         scale.height = height;
         scales.push_back(scale);
-        for (int y=1;y<img.rows-height;y+=round(SHIFT*min_bb_side))
+        for (int y=1;y<sbox.height-height;y+=round(SHIFT*min_bb_side))
         {
-            for (int x=1;x<img.cols-width;x+=round(SHIFT*min_bb_side))
+            for (int x=1;x<sbox.width-width;x+=round(SHIFT*min_bb_side))
             {
                 bbox.x = x;
                 bbox.y = y;
                 bbox.width = width;
                 bbox.height = height;
-                BoundingBox bbbox;
-                bbbox.x = box.x;
-                bbbox.y = box.y;
-                bbbox.width = box.width;
-                bbbox.height = box.height;
-                bbox.overlap = bbOverlap(bbox,bbbox);
+//                BoundingBox bbbox;
+//                bbbox.x = box.x;
+//                bbbox.y = box.y;
+//                bbbox.width = box.width;
+//                bbbox.height = box.height;
+                bbox.overlap = bbOverlap(bbox,box);
                 bbox.sidx = sc;
                 // printf("bbox:%d %d %d %d",bbox.x, bbox.y, bbox.width, bbox.height);
                 grid.push_back(bbox);
@@ -1485,7 +1495,7 @@ float bbOverlap(const BoundingBox& box1,const BoundingBox& box2){
   return intersection / (area1 + area2 - intersection);
 }
 
-void getOverlappingBoxes(const cv::Rect& box1,int num_closest){
+void getOverlappingBoxes(int num_closest){
   float max_overlap = 0;
   for (int i=0;i<grid.size();i++){
       if (grid[i].overlap > max_overlap) {
