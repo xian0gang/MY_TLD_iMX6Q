@@ -530,7 +530,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   //TLD中定义：cv::Mat pEx;  //positive NN example 大小为15*15图像片
   pEx.create(patch_size,patch_size,CV_64F);
   //Init Generator
-  generator = PatchGenerator(0,0,noise_init,true,1-scale_init,1+scale_init,-angle_init*CV_PI/180,angle_init*CV_PI/180,-angle_init*CV_PI/180,angle_init*CV_PI/180);
+//  generator = PatchGenerator(0,0,noise_init,true,1-scale_init,1+scale_init,-angle_init*CV_PI/180,angle_init*CV_PI/180,-angle_init*CV_PI/180,angle_init*CV_PI/180);
   
   //此函数根据传入的box（目标边界框），在整帧图像中的全部窗口中寻找与该box距离最小（即最相似，
   //重叠度最大）的num_closest_init个窗口，然后把这些窗口 归入good_boxes容器
@@ -667,8 +667,8 @@ void generatePositiveData(const Mat& frame, int num_warps)
     int idx;
     for (int i=0;i<num_warps;i++)
     {
-        if (i>0)
-            generator(frame,pt,warped,bbhull.size(),rng);
+//        if (i>0)
+//            generator(frame,pt,warped,bbhull.size(),rng);
         for (int b=0;b<good_boxes.size();b++)
         {
             idx=good_boxes[b];
