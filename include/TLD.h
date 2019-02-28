@@ -12,14 +12,14 @@
 #include <mutex>
 
 //Bounding Boxes
-struct BoundingBox : public cv::Rect 
-{
-    BoundingBox(){}
-    BoundingBox(cv::Rect r): cv::Rect(r){}
-public:
-    float overlap;        //Overlap with current Bounding Box
-    int sidx;             //scale index
-};
+//struct BoundingBox : public cv::Rect
+//{
+//    BoundingBox(){}
+//    BoundingBox(cv::Rect r): cv::Rect(r){}
+//public:
+//    float overlap;        //Overlap with current Bounding Box
+//    int sidx;             //scale index
+//};
 
 //Detection structure
 struct DetStruct 

@@ -560,9 +560,9 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
 
 
 		ppp();
-		detect_d2();
-		detect_d3();
-		detect_d4();
+//		detect_d2();
+//		detect_d3();
+        detect_d4();
 
 
 		// drawBox(last_gray, box_b);

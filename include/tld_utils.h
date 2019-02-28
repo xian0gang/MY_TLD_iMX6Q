@@ -18,6 +18,16 @@ struct RectBox
     int height;
 };
 
+struct BoundingBox
+{
+    int x;
+    int y;
+    int width;
+    int height;
+    float overlap;        //Overlap with current Bounding Box
+    int sidx;             //scale index
+};
+
 #define MULTIPLE 4
 
 void drawBox(cv::Mat& image, CvRect box, cv::Scalar color = cvScalarAll(255), int thick=1); 

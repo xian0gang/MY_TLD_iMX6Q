@@ -213,6 +213,7 @@ int ppp()
 
 void  *pth_det2(void *tt)
 {
+    /*
     cpu_set_t cpuset;
     pthread_t thread = pthread_self();
     int s,core_no = 1;
@@ -269,7 +270,7 @@ void  *pth_det2(void *tt)
             lk2.unlock();
         }
 		printf("**************************************************destory pth_test2\n");
-		
+        */
 }
 
 int detect_d2()
@@ -281,7 +282,7 @@ int detect_d2()
 
 void  *pth_det3(void *tt)
 {
-
+/*
     cpu_set_t cpuset;
     pthread_t thread = pthread_self();
     int s,core_no = 1;
@@ -337,6 +338,7 @@ void  *pth_det3(void *tt)
             lk3.unlock();
         }
 		printf("**************************************************destory pth_test3\n");
+        */
 }
 
 int detect_d3()
@@ -387,7 +389,18 @@ void  *pth_det4(void *tt)
                 grid_count++;
                 if (MyGetVar(grid[i],iis,iisq)>=var)
                 {
-                    patch = img_g(grid[i]);
+                    patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+                    ScaleBox srcbox;
+                    RectBox dstbox;
+                    srcbox.width = img_g.cols;
+                    srcbox.height = img_g.rows;
+                    dstbox.x = grid[i].x;
+                    dstbox.y = grid[i].y;
+                    dstbox.width = grid[i].width;
+                    dstbox.height = grid[i].height;
+                    imgRoi(img_g.data, srcbox, patch.data, dstbox);
+
+//                    patch = img_g(grid[i]);
                     classifier.getFeatures(patch,grid[i].sidx,ferns);
                     conf = classifier.measure_forest(ferns);
 
@@ -421,6 +434,7 @@ void  *pth_det4(void *tt)
         }
 
 		printf("**************************************************destory pth_test4\n");
+
 }
 
 int detect_d4()
@@ -546,7 +560,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   lastconf=1;
   lastvalid=true;
   //Print
-  fprintf(bb_file,"%d,%d,%d,%d,%f\n", lastbox.x,lastbox.y,lastbox.br().x,lastbox.br().y,lastconf);
+//  fprintf(bb_file,"%d,%d,%d,%d,%f\n", lastbox.x,lastbox.y,lastbox.br().x,lastbox.br().y,lastconf);
   
   //Prepare Classifier
   //Prepare Classifier 准备分类器
@@ -659,14 +673,38 @@ void generatePositiveData(const Mat& frame, int num_warps)
 {
     Scalar mean;
     Scalar stdev;
-    getPattern(frame(best_box),pEx,mean,stdev);
+
+    Mat mbb = Mat::zeros(best_box.height, best_box.width, CV_8UC1);
+    ScaleBox srcbox0;
+    RectBox dstbox0;
+    srcbox0.width = frame.cols;
+    srcbox0.height = frame.rows;
+    dstbox0.x = best_box.x;
+    dstbox0.y = best_box.y;
+    dstbox0.width = best_box.width;
+    dstbox0.height = best_box.height;
+    imgRoi(frame.data, srcbox0, mbb.data, dstbox0);
+
+    getPattern(mbb,pEx,mean,stdev);
     //Get Fern features on warped patches
     Mat img;
-    Mat warped;
+//    Mat warped;
     //GaussianBlur(frame,img,Size(9,9),1.5);
 	separateGaussianFilter(frame, img, 9, 1.5);
     //img=frame;
-    warped = img(bbhull);
+
+    Mat warped = Mat::zeros(bbhull.height, bbhull.width, CV_8UC1);
+    ScaleBox srcbox1;
+    RectBox dstbox1;
+    srcbox1.width = img.cols;
+    srcbox1.height = img.rows;
+    dstbox1.x = bbhull.x;
+    dstbox1.y = bbhull.y;
+    dstbox1.width = bbhull.width;
+    dstbox1.height = bbhull.height;
+    imgRoi(img.data, srcbox1, warped.data, dstbox1);
+
+//    warped = img(bbhull);
     RNG& rng = theRNG();
     Point2f pt(bbhull.x+(bbhull.width-1)*0.5f,bbhull.y+(bbhull.height-1)*0.5f);
     vector<int> fern(classifier.getNumStructs());
@@ -682,7 +720,19 @@ void generatePositiveData(const Mat& frame, int num_warps)
         for (int b=0;b<good_boxes.size();b++)
         {
             idx=good_boxes[b];
-            patch = img(grid[idx]);
+
+            patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+            ScaleBox srcbox;
+            RectBox dstbox;
+            srcbox.width = img.cols;
+            srcbox.height = img.rows;
+            dstbox.x = grid[idx].x;
+            dstbox.y = grid[idx].y;
+            dstbox.width = grid[idx].width;
+            dstbox.height = grid[idx].height;
+            imgRoi(img.data, srcbox, patch.data, dstbox);
+
+//            patch = img(grid[idx]);
             classifier.getFeatures(patch,grid[idx].sidx,fern);
             pX.push_back(make_pair(fern,1));
         }
@@ -789,8 +839,8 @@ int getVar(const BoundingBox& box,const Mat& sum,const Mat& sqsum)
     int blsq1 = sqsum.at<double>(box.y+box.height,box.x);
     int trsq1 = sqsum.at<double>(box.y,box.x+box.width);
     int tlsq1 = sqsum.at<double>(box.y,box.x);
-    int mean1 = (brs1+tls1-trs1-bls1)/(box.area());
-    int sqmean1 = (brsq1+tlsq1-trsq1-blsq1)/(box.area());
+    int mean1 = (brs1+tls1-trs1-bls1)/(box.height*box.width);
+    int sqmean1 = (brsq1+tlsq1-trsq1-blsq1)/(box.height*box.width);
     return sqmean1-mean1*mean1;
 }
 
@@ -919,7 +969,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     }
     else  //   If NOT tracking
     {                                       //   If NOT tracking
-    	printf("Not tracking..\n");
+        printf("\n....................Not tracking...............................\n");
     	lastboxfound = false;
     	lastvalid = false;
     	 //如果跟踪器没有跟踪到目标，但是检测器检测到了一些可能的目标box，那么同样对其进行聚类，但只是简单的
@@ -936,6 +986,11 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     			lastboxfound = true;
     		}
     	}
+        else
+        {
+            //结构体需手动清零
+            memset(&bbnext, 0, sizeof(BoundingBox));
+        }
     }
     lastbox=bbnext;
     // if (lastboxfound)
@@ -982,7 +1037,7 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 		//跟踪失败检测：如果FB error的中值大于10个像素（经验值），或者预测到的当前box的位置移出图像，则
 		//认为跟踪错误，此时不返回bounding box；Rect::br()返回的是右下角的坐标
 		//getFB()返回的是FB error的中值
-		if (tracker.getFB()>10 || tbb.x>img2.cols ||  tbb.y>img2.rows || tbb.br().x < 1 || tbb.br().y <1)
+        if (tracker.getFB()>10 || tbb.x>img2.cols ||  tbb.y>img2.rows || /*tbb.br().x*/tbb.x + tbb.width < 1 || /*tbb.br().y*/tbb.y + tbb.height <1)
 		{
 			tvalid =false; //too unstable prediction or bounding box out of image
 			tracked = false;
@@ -1080,7 +1135,7 @@ void bbPredict(const vector<cv::Point2f>& points1,const vector<cv::Point2f>& poi
     bb2.y = round( bb1.y + dy -s2);
     bb2.width = round(bb1.width*s);
     bb2.height = round(bb1.height*s);
-    printf("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
+//    printf("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
 }
 
 void detect(const cv::Mat& frame)
@@ -1303,6 +1358,7 @@ void evaluate()
 
 void learn(const Mat& img)
 {
+    /*
   printf("[Learning] ");
   ///Check consistency
   BoundingBox bb;
@@ -1367,6 +1423,7 @@ void learn(const Mat& img)
   classifier.trainF(fern_examples,2);
   classifier.trainNN(nn_examples);
   classifier.show();
+  */
 }
 
 void buildGrid(const cv::Mat& img, const cv::Rect& box)
@@ -1398,7 +1455,12 @@ void buildGrid(const cv::Mat& img, const cv::Rect& box)
                 bbox.y = y;
                 bbox.width = width;
                 bbox.height = height;
-                bbox.overlap = bbOverlap(bbox,BoundingBox(box));
+                BoundingBox bbbox;
+                bbbox.x = box.x;
+                bbbox.y = box.y;
+                bbbox.width = box.width;
+                bbbox.height = box.height;
+                bbox.overlap = bbOverlap(bbox,bbbox);
                 bbox.sidx = sc;
                 // printf("bbox:%d %d %d %d",bbox.x, bbox.y, bbox.width, bbox.height);
                 grid.push_back(bbox);
