@@ -341,4 +341,14 @@ void my_resize(const unsigned char *dataSrc, unsigned char *dataDst,int src_widt
 	}
 }
 
-
+void imgRoi(const unsigned char *src, ScaleBox srcbox, unsigned char *dst, RectBox dstbox)
+{
+    int i, j;
+    for(i = 0; i < dstbox.height; i++)
+    {
+        for(j = 0; j < dstbox.width; j ++)
+        {
+            *(dst + i * dstbox.width + j) = *(src + (i + dstbox.y) * srcbox.width + j + dstbox.x);
+        }
+    }
+}

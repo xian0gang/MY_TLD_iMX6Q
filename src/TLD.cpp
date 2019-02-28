@@ -564,7 +564,17 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   ////例如需要提取图像A的某个ROI（感兴趣区域，由矩形框）的话，用Mat类的B=img(ROI)即可提取
   //frame1(best_box)就表示在frame1中提取best_box区域（目标区域）的图像片
 //  meanStdDev(frame1(best_box),mean,stdev);
-  Mat mbb = frame1(best_box);
+  Mat mbb = Mat::zeros(best_box.height, best_box.width, CV_8UC1);
+  ScaleBox srcbox;
+  RectBox dstbox;
+  srcbox.width = frame1.cols;
+  srcbox.height = frame1.rows;
+  dstbox.x = best_box.x;
+  dstbox.y = best_box.y;
+  dstbox.width = best_box.width;
+  dstbox.height = best_box.height;
+  imgRoi(frame1.data, srcbox, mbb.data, dstbox);
+
   int mmm = meanDev(mbb.data, mbb.cols, mbb.rows);
   double ssss = StDev(mbb.data, mbb.cols, mbb.rows, mmm);
   
@@ -726,7 +736,19 @@ void generateNegativeData(const Mat& frame)
         // if (getVar(grid[idx],iisum,iisqsum)<var*0.5f)
 		if (MyGetVar(grid[idx],iis,iisq)<var*0.5f)
             continue;
-        patch =  frame(grid[idx]);
+
+        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+        ScaleBox srcbox;
+        RectBox dstbox;
+        srcbox.width = frame.cols;
+        srcbox.height = frame.rows;
+        dstbox.x = grid[idx].x;
+        dstbox.y = grid[idx].y;
+        dstbox.width = grid[idx].width;
+        dstbox.height = grid[idx].height;
+        imgRoi(frame.data, srcbox, patch.data, dstbox);
+//        patch =  frame(grid[idx]);
+
         classifier.getFeatures(patch,grid[idx].sidx,fern);
         nX.push_back(make_pair(fern,0));
         a++;
@@ -738,7 +760,19 @@ void generateNegativeData(const Mat& frame)
     for (int i=0;i<bad_patches;i++)
     {
         idx=bad_boxes[i];
-        patch = frame(grid[idx]);
+
+        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+        ScaleBox srcbox;
+        RectBox dstbox;
+        srcbox.width = frame.cols;
+        srcbox.height = frame.rows;
+        dstbox.x = grid[idx].x;
+        dstbox.y = grid[idx].y;
+        dstbox.width = grid[idx].width;
+        dstbox.height = grid[idx].height;
+        imgRoi(frame.data, srcbox, patch.data, dstbox);
+
+//        patch = frame(grid[idx]);
         nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
         getPattern(patch,nEx[i],dum1,dum2);
     }
@@ -1099,7 +1133,19 @@ void detect(const cv::Mat& frame)
         if (MyGetVar(grid[i],iis,iisq)>=var)
         {
             a++;
-            patch = img_g(grid[i]);
+
+            patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+            ScaleBox srcbox;
+            RectBox dstbox;
+            srcbox.width = frame.cols;
+            srcbox.height = frame.rows;
+            dstbox.x = grid[i].x;
+            dstbox.y = grid[i].y;
+            dstbox.width = grid[i].width;
+            dstbox.height = grid[i].height;
+            imgRoi(frame.data, srcbox, patch.data, dstbox);
+
+//            patch = img_g(grid[i]);
 //            double t111 = (double)getTickCount();
             classifier.getFeatures(patch,grid[i].sidx,ferns);
 //                t111=(double)getTickCount()-t111;
@@ -1183,7 +1229,19 @@ void detect(const cv::Mat& frame)
         for (int i=0;i<detections;i++)
         {                                        //  for every remaining detection
             idx=dt.bb[i];                                                       //  Get the detected bounding box index
-            patch = frame(grid[idx]);
+
+            patch = Mat::zeros(grid[idx].height, grid[i].width, CV_8UC1);
+            ScaleBox srcbox;
+            RectBox dstbox;
+            srcbox.width = frame.cols;
+            srcbox.height = frame.rows;
+            dstbox.x = grid[idx].x;
+            dstbox.y = grid[idx].y;
+            dstbox.width = grid[idx].width;
+            dstbox.height = grid[idx].height;
+            imgRoi(frame.data, srcbox, patch.data, dstbox);
+
+//            patch = frame(grid[idx]);
             
             getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
 
