@@ -33,7 +33,9 @@ void FerNNClassifier::read(const FileNode& file)
   thr_nn_valid = (float)file["thr_nn_valid"];
 }
 
-void FerNNClassifier::prepare(const vector<Size>& scales){
+//void FerNNClassifier::prepare(const vector<Size>& scales)
+void FerNNClassifier::prepare(const vector<ScaleBox>& scales)
+{
   acum = 0;
   //Initialize test locations for features
   int totalFeatures = nstructs*structSize;

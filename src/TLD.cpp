@@ -57,7 +57,10 @@ LKTracker tracker;
 cv::PatchGenerator generator;
   //Bounding Boxes
 std::vector<BoundingBox> grid;
-std::vector<cv::Size> scales;
+
+//std::vector<cv::Size> scales;
+std::vector<ScaleBox> scales;
+
 std::vector<int> good_boxes; //indexes of bboxes with overlap > 0.6
 std::vector<int> bad_boxes; //indexes of bboxes with overlap < 0.2
 BoundingBox bbhull; // hull of good_boxes
@@ -1445,7 +1448,8 @@ void buildGrid(ScaleBox sbox, BoundingBox box)
     int width, height, min_bb_side;
     //Rect bbox;
     BoundingBox bbox;
-    Size scale;
+//    Size scale;
+    ScaleBox scale;
     int sc=0;
     for (int s=10;s<11;s++)
     {

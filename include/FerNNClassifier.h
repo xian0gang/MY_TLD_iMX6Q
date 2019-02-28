@@ -7,6 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
+#include <tld_utils.h>
 class FerNNClassifier{
 private:
   float thr_fern;
@@ -21,7 +22,10 @@ public:
   float thr_nn_valid;
 
   void read(const cv::FileNode& file);
-  void prepare(const std::vector<cv::Size>& scales);
+
+//  void prepare(const std::vector<cv::Size>& scales);
+  void prepare(const std::vector<ScaleBox>& scales);
+
   void getFeatures(const cv::Mat& image,const int& scale_idx,std::vector<int>& fern);
   void update(const std::vector<int>& fern, int C, int N);
   float measure_forest(std::vector<int> fern);
