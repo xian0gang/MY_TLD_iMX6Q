@@ -681,7 +681,8 @@ void generatePositiveData(const Mat& frame, int num_warps)
 void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
 {
     //Output: resized Zero-Mean patch
-    resize(img,pattern,Size(patch_size,patch_size));
+//    resize(img,pattern,Size(patch_size,patch_size));
+    my_resize(img.data, pattern.data, img.cols, img.rows, patch_size, patch_size);
     meanStdDev(pattern,mean,stdev);
     pattern.convertTo(pattern,CV_32F);
     pattern = pattern-mean.val[0];
@@ -725,6 +726,7 @@ void generateNegativeData(const Mat& frame)
     {
         idx=bad_boxes[i];
         patch = frame(grid[idx]);
+        nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
         getPattern(patch,nEx[i],dum1,dum2);
     }
     printf("NN: %d\n",(int)nEx.size());
@@ -771,8 +773,10 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     int didx; //detection index
 
 
-	Mat re_img1;
-    resize(img2, dec_mat, Size(img2.cols/MULTIPLE, img2.rows/MULTIPLE));
+    Mat re_img1(img1.rows/MULTIPLE, img1.cols/MULTIPLE, CV_8UC1);
+    dec_mat = Mat::zeros(img2.rows/MULTIPLE, img2.cols/MULTIPLE, CV_8UC1);
+//    resize(img2, dec_mat, Size(img2.cols/MULTIPLE, img2.rows/MULTIPLE));
+    my_resize(img2.data, dec_mat.data, img2.cols, img2.rows, img2.cols/MULTIPLE, img2.rows/MULTIPLE);
 
     if(track_count == 0)
     {
@@ -782,8 +786,8 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     }
     track_count++;
 
-    resize(img1, re_img1, Size(img1.cols/MULTIPLE, img1.rows/MULTIPLE));
-
+//    resize(img1, re_img1, Size(img1.cols/MULTIPLE, img1.rows/MULTIPLE));
+    my_resize(img1.data, re_img1.data, img1.cols, img1.rows, img1.cols/MULTIPLE, img1.rows/MULTIPLE);
     ///Track  跟踪模块
     if(lastboxfound && tl)
     {

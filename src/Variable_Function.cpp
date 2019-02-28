@@ -536,10 +536,10 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
 	
 		memcpy(last_gray.data, gSubImageData_malloc, 720*576); 
 
-		Mat last_gray_resize;
-// imwrite("last_gray.bmp",last_gray);
-		resize(last_gray, last_gray_resize, Size(last_gray.cols/MULTIPLE, last_gray.rows/MULTIPLE));
-		// imwrite("last_gray_resize.bmp",last_gray_resize);
+        Mat last_gray_resize(576/MULTIPLE, 720/MULTIPLE, CV_8UC1);
+
+//		resize(last_gray, last_gray_resize, Size(last_gray.cols/MULTIPLE, last_gray.rows/MULTIPLE));
+        my_resize(last_gray.data, last_gray_resize.data, last_gray.cols, last_gray.rows, last_gray.cols/MULTIPLE, last_gray.rows/MULTIPLE);
 
 		//box_b.x = box_b.x / 4;
 		//box_b.y = box_b.y / 4;

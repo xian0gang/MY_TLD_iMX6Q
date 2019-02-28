@@ -323,15 +323,9 @@ int MyIntegral(unsigned char * src, int width, int height, int * dest, int * sqd
 
 void my_resize(const unsigned char *dataSrc, unsigned char *dataDst,int src_width, int src_height, int width, int height)
 {
-	// Mat output = Mat::zeros(Size(width, height), CV_8UC1);
-	// unsigned char dst[width*height];
-	// uchar* dataDst = dst;
-	// uchar* dataSrc = img.data;
-	
 	double xRatio = (double)src_width / width;
 	double yRatio = (double)src_height / height;
-cout << "xRatio:"<<xRatio;
-cout << "yRatio:"<<yRatio;
+
 	for (int i = 0; i < height; i++)
 	{
 		double srcY = i * yRatio;//源图像“虚”坐标的y值
@@ -372,6 +366,4 @@ cout << "yRatio:"<<yRatio;
 			*(dataDst + i*width + j) = temp0;
 		}
 	}
-cout << "for end";
-	// return dst;
 }
