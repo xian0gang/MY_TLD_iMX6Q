@@ -294,33 +294,6 @@ int MyIntegral(unsigned char * src, int width, int height, int * dest, int * sqd
     return 0;
 }
 
-//缩放
-// Mat my_resize(const Mat &img, int width, int height)
-// {
-    // 1, 定义缩放后的图像大小，行列缩放比例
-    // Mat output = Mat::zeros(Size(width, height), CV_8UC1);
-    // float width_scale = (float)img.cols / width;     // 列缩放比例，相对于算法前面讲的k1
-    // float height_scale = (float)img.rows / height;   // 行缩放比例，即k2
-
-   // unsigned char dst[width*height];
-   // float width_scale = 720 / width;     // 列缩放比例，相对于算法前面讲的k1
-   // float height_scale = 576 / height;   // 行缩放比例，即k2
-
-    // 2, 采样
-    // for (int i = 0; i < height; i++)  // 注意i,j的范围, i < height * img.rows / height;
-    // {
-        // for (int j = 0; j < width; j++)
-        // {
-            // output.at<uchar>(i, j) = img.at<uchar>(round(i * height_scale), round(j * width_scale));
-           // dst[i*height+j] = src + i * height_scale + j * width_scale;
-        // }
-    // }
-   // unsigned char  *p = dst;
-   // return p;
-    // return output;
-
-// }
-
 void my_resize(const unsigned char *dataSrc, unsigned char *dataDst,int src_width, int src_height, int width, int height)
 {
 	double xRatio = (double)src_width / width;
@@ -367,3 +340,5 @@ void my_resize(const unsigned char *dataSrc, unsigned char *dataDst,int src_widt
 		}
 	}
 }
+
+

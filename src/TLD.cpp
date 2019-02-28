@@ -563,8 +563,10 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   //统计best_box的均值和标准差
   ////例如需要提取图像A的某个ROI（感兴趣区域，由矩形框）的话，用Mat类的B=img(ROI)即可提取
   //frame1(best_box)就表示在frame1中提取best_box区域（目标区域）的图像片
-  meanStdDev(frame1(best_box),mean,stdev);
-  
+//  meanStdDev(frame1(best_box),mean,stdev);
+  Mat mbb = frame1(best_box);
+  int mmm = meanDev(mbb.data, mbb.cols, mbb.rows);
+  double ssss = StDev(mbb.data, mbb.cols, mbb.rows, mmm);
   
   //利用积分图像去计算每个待检测窗口的方差
   //cvIntegral( const CvArr* image, CvArr* sum, CvArr* sqsum=NULL, CvArr* tilted_sum=NULL );
@@ -577,7 +579,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   
 	//级联分类器模块一：方差检测模块，利用积分图计算每个待检测窗口的方差，方差大于var阈值（目标patch方差的50%）的，
   //则认为其含有前景目标方差；var 为标准差的平方
-  var = pow(stdev.val[0],2)*0.5; //getVar(best_box,iisum,iisqsum);
+  var = pow(ssss,2)*0.5; //getVar(best_box,iisum,iisqsum);
   cout << "variance: " << var << endl;
   
   //check variance
@@ -683,9 +685,20 @@ void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
     //Output: resized Zero-Mean patch
 //    resize(img,pattern,Size(patch_size,patch_size));
     my_resize(img.data, pattern.data, img.cols, img.rows, patch_size, patch_size);
-    meanStdDev(pattern,mean,stdev);
-    pattern.convertTo(pattern,CV_32F);
-    pattern = pattern-mean.val[0];
+//    meanStdDev(pattern,mean,stdev);
+    int meand = meanDev(pattern.data, pattern.cols, pattern.rows);
+//    pattern.convertTo(pattern,CV_32F);
+//    pattern = pattern-mean.val[0];
+    int i, j;
+    int h = pattern.rows;
+    int w = pattern.cols;
+    for(i = 0; i < h; i++)
+    {
+        for(j = 0; j < w; j++)
+        {
+            *(pattern.data + i * w + j) = *(pattern.data + i * w + j) - meand;
+        }
+    }
 }
 
 void generateNegativeData(const Mat& frame)
