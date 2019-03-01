@@ -593,17 +593,20 @@ void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
   ////例如需要提取图像A的某个ROI（感兴趣区域，由矩形框）的话，用Mat类的B=img(ROI)即可提取
   //frame1(best_box)就表示在frame1中提取best_box区域（目标区域）的图像片
 //  meanStdDev(frame1(best_box),mean,stdev);
-  Mat mbb = Mat::zeros(best_box.height, best_box.width, CV_8UC1);
+//  Mat mbb = Mat::zeros(best_box.height, best_box.width, CV_8UC1);
+  int len = best_box.height * best_box.width;
+  unsigned char mbb[len];
+  memset(mbb, 0, len);
 
   RectBox dstbox;
   dstbox.x = best_box.x;
   dstbox.y = best_box.y;
   dstbox.width = best_box.width;
   dstbox.height = best_box.height;
-  imgRoi(frame1, srcbox, mbb.data, dstbox);
+  imgRoi(frame1, srcbox, mbb, dstbox);
 
-  int mmm = meanDev(mbb.data, mbb.cols, mbb.rows);
-  double ssss = StDev(mbb.data, mbb.cols, mbb.rows, mmm);
+  int mmm = meanDev(mbb, best_box.width, best_box.height);
+  double ssss = StDev(mbb, best_box.width, best_box.height, mmm);
   
   //利用积分图像去计算每个待检测窗口的方差
   //cvIntegral( const CvArr* image, CvArr* sum, CvArr* sqsum=NULL, CvArr* tilted_sum=NULL );
