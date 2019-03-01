@@ -376,7 +376,7 @@ void  *pth_det4(void *tt)
 // main
             //        printf("pth_grid1 start while......\n");
             float conf;
-            Mat patch;
+//            Mat patch;
             int numtrees = classifier.getNumStructs();
             float fern_th = classifier.getFernTh();
             vector <int> ferns(10);
@@ -392,7 +392,10 @@ void  *pth_det4(void *tt)
                 grid_count++;
                 if (MyGetVar(grid[i],iis,iisq)>=var)
                 {
-                    patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+//                    patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+                    int gridlen = grid[i].height * grid[i].width;
+                    unsigned char patch[gridlen];
+                    memset(patch, 0, gridlen);
                     ScaleBox srcbox;
                     RectBox dstbox;
                     srcbox.width = img_g.cols;
@@ -401,10 +404,10 @@ void  *pth_det4(void *tt)
                     dstbox.y = grid[i].y;
                     dstbox.width = grid[i].width;
                     dstbox.height = grid[i].height;
-                    imgRoi(img_g.data, srcbox, patch.data, dstbox);
+                    imgRoi(img_g.data, srcbox, patch, dstbox);
 
 //                    patch = img_g(grid[i]);
-                    classifier.getFeatures(patch.data,grid[i].sidx,ferns, grid[i].width);
+                    classifier.getFeatures(patch, grid[i].sidx,ferns, grid[i].width);
                     conf = classifier.measure_forest(ferns);
 
                     if (conf>conf_pro)
@@ -735,7 +738,7 @@ void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warp
 //    Point2f pt(bbhull.x+(bbhull.width-1)*0.5f,bbhull.y+(bbhull.height-1)*0.5f);
     vector<int> fern(classifier.getNumStructs());
     pX.clear();
-    Mat patch;
+//    Mat patch;
     if (pX.capacity()<num_warps*good_boxes.size())
     pX.reserve(num_warps*good_boxes.size());
     int idx;
@@ -747,7 +750,10 @@ void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warp
         {
             idx=good_boxes[b];
 
-            patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+//            patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+            int gridlen = grid[idx].height * grid[idx].width;
+            unsigned char patch[gridlen];
+            memset(patch, 0, gridlen);
 //            ScaleBox srcbox;
             RectBox dstbox;
 //            srcbox.width = img.cols;
@@ -756,10 +762,10 @@ void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warp
             dstbox.y = grid[idx].y;
             dstbox.width = grid[idx].width;
             dstbox.height = grid[idx].height;
-            imgRoi(img, box, patch.data, dstbox);
+            imgRoi(img, box, patch, dstbox);
 
 //            patch = img(grid[idx]);
-            classifier.getFeatures(patch.data, grid[idx].sidx, fern, grid[idx].width);
+            classifier.getFeatures(patch, grid[idx].sidx, fern, grid[idx].width);
             pX.push_back(make_pair(fern,1));
         }
     }
@@ -806,7 +812,7 @@ void generateNegativeData(const Mat& frame)
     printf("negative data generation started.\n");
     vector<int> fern(classifier.getNumStructs());
     nX.reserve(bad_boxes.size());
-    Mat patch;
+//    Mat patch;
     for (int j=0;j<bad_boxes.size();j++)
     {
         idx = bad_boxes[j];
@@ -814,7 +820,10 @@ void generateNegativeData(const Mat& frame)
 		if (MyGetVar(grid[idx],iis,iisq)<var*0.5f)
             continue;
 
-        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+//        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+        int gridlen = grid[idx].height * grid[idx].width;
+        unsigned char patch[gridlen];
+        memset(patch, 0, gridlen);
         ScaleBox srcbox;
         RectBox dstbox;
         srcbox.width = frame.cols;
@@ -823,10 +832,10 @@ void generateNegativeData(const Mat& frame)
         dstbox.y = grid[idx].y;
         dstbox.width = grid[idx].width;
         dstbox.height = grid[idx].height;
-        imgRoi(frame.data, srcbox, patch.data, dstbox);
+        imgRoi(frame.data, srcbox, patch, dstbox);
 //        patch =  frame(grid[idx]);
 
-        classifier.getFeatures(patch.data,grid[idx].sidx,fern, grid[idx].width);
+        classifier.getFeatures(patch,grid[idx].sidx,fern, grid[idx].width);
         nX.push_back(make_pair(fern,0));
         a++;
     }
@@ -838,7 +847,10 @@ void generateNegativeData(const Mat& frame)
     {
         idx=bad_boxes[i];
 
-        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+//        patch = Mat::zeros(grid[idx].height, grid[idx].width, CV_8UC1);
+        int gridlen = grid[idx].height * grid[idx].width;
+        unsigned char patch[gridlen];
+        memset(patch, 0, gridlen);
         ScaleBox srcbox;
         RectBox dstbox;
         srcbox.width = frame.cols;
@@ -847,15 +859,15 @@ void generateNegativeData(const Mat& frame)
         dstbox.y = grid[idx].y;
         dstbox.width = grid[idx].width;
         dstbox.height = grid[idx].height;
-        imgRoi(frame.data, srcbox, patch.data, dstbox);
+        imgRoi(frame.data, srcbox, patch, dstbox);
 
 //        patch = frame(grid[idx]);
         nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
 //        getPattern(patch,nEx[i],dum1,dum2);
         ScaleBox bestbox;
-        bestbox.width = patch.cols;
-        bestbox.height = patch.rows;
-        getPattern(patch.data, bestbox, nEx[i].data);
+        bestbox.width = grid[idx].width;
+        bestbox.height = grid[idx].height;
+        getPattern(patch, bestbox, nEx[i].data);
     }
     printf("NN: %d\n",(int)nEx.size());
 }
@@ -1220,7 +1232,10 @@ void detect(const cv::Mat& frame)
         {
             a++;
 
-            patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+//            patch = Mat::zeros(grid[i].height, grid[i].width, CV_8UC1);
+            int gridlen = grid[i].height * grid[i].width;
+            unsigned char patch[gridlen];
+            memset(patch, 0, gridlen);
             ScaleBox srcbox;
             RectBox dstbox;
             srcbox.width = frame.cols;
@@ -1229,11 +1244,11 @@ void detect(const cv::Mat& frame)
             dstbox.y = grid[i].y;
             dstbox.width = grid[i].width;
             dstbox.height = grid[i].height;
-            imgRoi(frame.data, srcbox, patch.data, dstbox);
+            imgRoi(frame.data, srcbox, patch, dstbox);
 
 //            patch = img_g(grid[i]);
 //            double t111 = (double)getTickCount();
-            classifier.getFeatures(patch.data,grid[i].sidx,ferns,grid[i].width);
+            classifier.getFeatures(patch,grid[i].sidx,ferns,grid[i].width);
 //                t111=(double)getTickCount()-t111;
 //                printf("xiangang----------------------------------->detect111 getFeatures-time: %gms\n", t111*1000/getTickFrequency());
             conf = classifier.measure_forest(ferns);
