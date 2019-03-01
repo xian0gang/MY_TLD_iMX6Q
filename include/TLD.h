@@ -64,7 +64,8 @@ void read(const cv::FileNode& file);
 void init(const cv::Mat& frame1,const cv::Rect &box, FILE* bb_file);
 //void generatePositiveData(const cv::Mat& frame, int num_warps);
 void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warps);
-void generateNegativeData(const cv::Mat& frame);
+//void generateNegativeData(const cv::Mat& frame);
+void generateNegativeData(const unsigned char* frame, ScaleBox box);
 void processFrame(const cv::Mat& img1,const cv::Mat& img2,std::vector<cv::Point2f>& points1,std::vector<cv::Point2f>& points2,
   BoundingBox& bbnext,bool& lastboxfound, bool tl,FILE* bb_file);
 void track(const cv::Mat& img1, const cv::Mat& img2,std::vector<cv::Point2f>& points1,std::vector<cv::Point2f>& points2);

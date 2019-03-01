@@ -630,7 +630,11 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
 
   
   // Generate negative data
-  generateNegativeData(frame1);
+//  generateNegativeData(frame1);
+  ScaleBox genbox;
+  genbox.width = frame1.cols;
+  genbox.height = frame1.rows;
+  generateNegativeData(frame1.data, genbox);
   
    //将负样本放进 训练和测试集
   //Split Negative Ferns into Training and Testing sets (they are already shuffled)
@@ -794,7 +798,8 @@ void getPattern(const unsigned char* img, ScaleBox sbox, unsigned char* pattern)
     }
 }
 
-void generateNegativeData(const Mat& frame)
+//void generateNegativeData(const Mat& frame)
+void generateNegativeData(const unsigned char* frame, ScaleBox box)
 {
     /* Inputs:
     * - Image
@@ -824,15 +829,15 @@ void generateNegativeData(const Mat& frame)
         int gridlen = grid[idx].height * grid[idx].width;
         unsigned char patch[gridlen];
         memset(patch, 0, gridlen);
-        ScaleBox srcbox;
+//        ScaleBox srcbox;
         RectBox dstbox;
-        srcbox.width = frame.cols;
-        srcbox.height = frame.rows;
+//        srcbox.width = .cols;
+//        srcbox.height = frame.rows;
         dstbox.x = grid[idx].x;
         dstbox.y = grid[idx].y;
         dstbox.width = grid[idx].width;
         dstbox.height = grid[idx].height;
-        imgRoi(frame.data, srcbox, patch, dstbox);
+        imgRoi(frame, box, patch, dstbox);
 //        patch =  frame(grid[idx]);
 
         classifier.getFeatures(patch,grid[idx].sidx,fern, grid[idx].width);
@@ -841,7 +846,7 @@ void generateNegativeData(const Mat& frame)
     }
     printf("Negative examples generated: ferns: %d ",a);
     //random_shuffle(bad_boxes.begin(),bad_boxes.begin()+bad_patches);//Randomly selects 'bad_patches' and get the patterns for NN;
-    Scalar dum1, dum2;
+//    Scalar dum1, dum2;
     nEx=vector<Mat>(bad_patches);
     for (int i=0;i<bad_patches;i++)
     {
@@ -851,15 +856,15 @@ void generateNegativeData(const Mat& frame)
         int gridlen = grid[idx].height * grid[idx].width;
         unsigned char patch[gridlen];
         memset(patch, 0, gridlen);
-        ScaleBox srcbox;
+//        ScaleBox srcbox;
         RectBox dstbox;
-        srcbox.width = frame.cols;
-        srcbox.height = frame.rows;
+//        srcbox.width = frame.cols;
+//        srcbox.height = frame.rows;
         dstbox.x = grid[idx].x;
         dstbox.y = grid[idx].y;
         dstbox.width = grid[idx].width;
         dstbox.height = grid[idx].height;
-        imgRoi(frame.data, srcbox, patch, dstbox);
+        imgRoi(frame, box, patch, dstbox);
 
 //        patch = frame(grid[idx]);
         nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
