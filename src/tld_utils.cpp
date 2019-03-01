@@ -42,7 +42,7 @@ vector<int> index_shuffle(int begin,int end)
 // 分离的计算
 void separateGaussianFilter(const Mat &src, Mat &dstt, int ksize, double sigma)
 {
-    CV_Assert(src.channels()==1 || src.channels() == 3); // 只处理单通道或者三通道图像
+//    CV_Assert(src.channels()==1 || src.channels() == 3); // 只处理单通道或者三通道图像
     // 生成一维的高斯滤波模板
     double *matrix = new double[ksize];
     double sum = 0;
@@ -349,6 +349,86 @@ void imgRoi(const unsigned char *src, ScaleBox srcbox, unsigned char *dst, RectB
         for(j = 0; j < dstbox.width; j ++)
         {
             *(dst + i * dstbox.width + j) = *(src + (i + dstbox.y) * srcbox.width + j + dstbox.x);
+        }
+    }
+}
+
+
+
+/* 获取高斯分布数组               (核大小， sigma值) */
+double **getGaussianArray(int arr_size, double sigma)
+{
+    int i, j;
+    // [1] 初始化权值数组
+    double **array = new double*[arr_size];
+    for (i = 0; i < arr_size; i++) {
+        array[i] = new double[arr_size];
+    }
+    // [2] 高斯分布计算
+    int center_i, center_j;
+    center_i = center_j = arr_size / 2;
+    double pi = 3.141592653589793;
+    double sum = 0.0f;
+    // [2-1] 高斯函数
+    for (i = 0; i < arr_size; i++ ) {
+        for (j = 0; j < arr_size; j++) {
+            array[i][j] =
+                //后面进行归一化，这部分可以不用
+                //0.5f *pi*(sigma*sigma) *
+                exp( -(1.0f)* ( ((i-center_i)*(i-center_i)+(j-center_j)*(j-center_j)) /
+                                                             (2.0f*sigma*sigma) ));
+            sum += array[i][j];
+        }
+    }
+    // [2-2] 归一化求权值
+    for (i = 0; i < arr_size; i++) {
+        for (j = 0; j < arr_size; j++) {
+            array[i][j] /= sum;
+//            printf(" [%.15f] ", array[i][j]);
+        }
+//        printf("\n");
+    }
+    return array;
+}
+
+/* 高斯滤波 (待处理单通道图片, 高斯分布数组， 高斯数组大小(核大小) ) */
+//void gaussian(cv::Mat *_src, double **_array, int _size)
+
+void myGaussian(const unsigned char *_src, unsigned char *_dst, int w, int h, int _size, double sigma)
+{
+
+    double **_array;
+    _array = getGaussianArray(_size, sigma);
+
+    //cv::Mat temp = (*_src).clone();
+    // [1] 扫描
+    int center = _size / 2;
+    for (int i = 0; i < h; i++)
+    {
+        for (int j = 0; j < w; j++)
+        {
+            // [2] 忽略边缘
+                        if (i > (_size / 2) - 1 && j > (_size / 2) - 1 &&
+                i < h - (_size / 2) && j < w - (_size / 2))
+            {
+                // [3] 找到图像输入点f(i,j),以输入点为中心与核中心对齐
+                //     核心为中心参考点 卷积算子=>高斯矩阵180度转向计算
+                //     x y 代表卷积核的权值坐标   i j 代表图像输入点坐标
+                //     卷积算子     (f*g)(i,j) = f(i-k,j-l)g(k,l)          f代表图像输入 g代表核
+                //     带入核参考点 (f*g)(i,j) = f(i-(k-ai), j-(l-aj))g(k,l)   ai,aj 核参考点
+                //     加权求和  注意：核的坐标以左上0,0起点
+                double sum = 0.0;
+                for (int k = 0; k < _size; k++)
+                {
+                    for (int l = 0; l < _size; l++)
+                    {
+                        //sum += (*_src).ptr<uchar>(i-k+center)[j-l+center] * _array[k][l];
+                        sum += *(_src + (i-k+center) * w + j-l+center) * _array[k][l];
+                    }
+                }
+                // 放入中间结果,计算所得的值与没有计算的值不能混用
+                *(_dst + i * w + j) = sum;
+            }
         }
     }
 }

@@ -584,7 +584,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   generatePositiveData(frame1,num_warps_init);
   
   // Set variance threshold
-  Scalar stdev, mean;
+//  Scalar stdev, mean;
   
   //统计best_box的均值和标准差
   ////例如需要提取图像A的某个ROI（感兴趣区域，由矩形框）的话，用Mat类的B=img(ROI)即可提取
@@ -699,11 +699,11 @@ void generatePositiveData(const Mat& frame, int num_warps)
 
     getPattern(mbb,pEx,mean,stdev);
     //Get Fern features on warped patches
-    Mat img;
+    Mat img = Mat::zeros(frame.rows, frame.cols, CV_8UC1);;
 //    Mat warped;
     //GaussianBlur(frame,img,Size(9,9),1.5);
-	separateGaussianFilter(frame, img, 9, 1.5);
-    //img=frame;
+    myGaussian(frame.data, img.data, frame.cols, frame.rows, 3, 1.5);
+//    img=frame;
 
     Mat warped = Mat::zeros(bbhull.height, bbhull.width, CV_8UC1);
     ScaleBox srcbox1;
@@ -1171,8 +1171,8 @@ void detect(const cv::Mat& frame)
 	MyIntegral(frame.data, frame.cols, frame.rows, iis, iisq);
 	
     //GaussianBlur(frame, img_g, Size(9,9),1.5);
-	separateGaussianFilter(frame, img_g, 9, 1.5);
-    //img_g = frame;
+    myGaussian(frame.data, img_g.data, frame.cols, frame.rows, 3, 1.5);
+//    img_g = frame;
     int numtrees = classifier.getNumStructs();
     float fern_th = classifier.getFernTh();
     vector <int> ferns(10);
@@ -1235,7 +1235,7 @@ void detect(const cv::Mat& frame)
 	// printf("half:%d\n",half);
    // printf("conf_pro:%f\n",conf_pro);
    // printf("var:%f\n",var);
-   // printf("a:%d\n",a);
+    printf("a:%d\n",a);
     std::unique_lock<std::mutex> lk4_4(mut_det4_4);
     data_cond_det4_4.wait(lk4_4, []{return isdetect4_4;});
     isdetect4_4 = false;
