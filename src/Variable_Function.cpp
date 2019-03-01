@@ -556,8 +556,11 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
 		
 // printf("box:%d %d %d %d \n", box.x, box.y, box.width, box.height);
 // imwrite("box.bmp",last_gray_resize(box));
-		init(last_gray_resize, box_b, bb_file);
-
+//		init(last_gray_resize, box_b, bb_file);
+        ScaleBox initbox;
+        initbox.width = 720/MULTIPLE;
+        initbox.height = 576/MULTIPLE;
+        init(last_gray_resize.data, initbox, box_b);
 
 		ppp();
 //		detect_d2();

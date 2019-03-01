@@ -61,7 +61,8 @@ struct CComparator
 
 void read(const cv::FileNode& file);
 //Methods
-void init(const cv::Mat& frame1,const cv::Rect &box, FILE* bb_file);
+//void init(const cv::Mat& frame1,const cv::Rect &box, FILE* bb_file);
+void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box);
 //void generatePositiveData(const cv::Mat& frame, int num_warps);
 void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warps);
 //void generateNegativeData(const cv::Mat& frame);
@@ -69,7 +70,8 @@ void generateNegativeData(const unsigned char* frame, ScaleBox box);
 void processFrame(const cv::Mat& img1,const cv::Mat& img2,std::vector<cv::Point2f>& points1,std::vector<cv::Point2f>& points2,
   BoundingBox& bbnext,bool& lastboxfound, bool tl,FILE* bb_file);
 void track(const cv::Mat& img1, const cv::Mat& img2,std::vector<cv::Point2f>& points1,std::vector<cv::Point2f>& points2);
-void detect(const cv::Mat& frame);
+//void detect(const cv::Mat& frame);
+void detect(const unsigned char* frame, ScaleBox box);
 void clusterConf(const std::vector<BoundingBox>& dbb,const std::vector<float>& dconf,std::vector<BoundingBox>& cbb,std::vector<float>& cconf);
 void evaluate();
 void learn(const cv::Mat& img);

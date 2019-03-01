@@ -40,7 +40,7 @@ float median(std::vector<float> v);
 
 std::vector<int> index_shuffle(int begin,int end);
 double myTemplateMatch(const Mat * pTemplate,const Mat * src);
-int MyIntegral(unsigned char * src, int width, int height, int * dest, int * sqdest);
+int MyIntegral(const unsigned char * src, int width, int height, int * dest, int * sqdest);
 double StDev(unsigned char* src, int w, int h, int mean);
 int meanDev(unsigned char* src, int w, int h);
 void my_resize(const unsigned char *dataSrc, unsigned char *dataDst, int src_width, int src_height, int width, int height);

@@ -39,114 +39,6 @@ vector<int> index_shuffle(int begin,int end)
 	return indexes;
 }
 
-// 分离的计算
-void separateGaussianFilter(const Mat &src, Mat &dstt, int ksize, double sigma)
-{
-//    CV_Assert(src.channels()==1 || src.channels() == 3); // 只处理单通道或者三通道图像
-    // 生成一维的高斯滤波模板
-    double *matrix = new double[ksize];
-    double sum = 0;
-    int origin = ksize / 2;
-    for (int i = 0; i < ksize; i++)
-    {
-        // 高斯函数前的常数可以不用计算，会在归一化的过程中给消去
-        double g = exp(-(i - origin) * (i - origin) / (2 * sigma * sigma));
-        sum += g;
-        matrix[i] = g;
-    }
-    // 归一化
-    for (int i = 0; i < ksize; i++)
-        matrix[i] /= sum;
-    // 将模板应用到图像中
-    int border = ksize / 2;
-Mat dst;
-    copyMakeBorder(src, dst, border, border, border, border, BorderTypes::BORDER_REFLECT);
-    int channels = dst.channels();
-    int rows = dst.rows - border;
-    int cols = dst.cols - border;
-    // 水平方向
-    for (int i = border; i < rows; i++)
-    {
-        for (int j = border; j < cols; j++)
-        {
-            double sum[3] = { 0 };
-            for (int k = -border; k <= border; k++)
-            {
-                if (channels == 1)
-                {
-                    sum[0] += matrix[border + k] * dst.at<uchar>(i, j + k); // 行不变，列变化；先做水平方向的卷积
-                }
-                else if (channels == 3)
-                {
-                    Vec3b rgb = dst.at<Vec3b>(i, j + k);
-                    sum[0] += matrix[border + k] * rgb[0];
-                    sum[1] += matrix[border + k] * rgb[1];
-                    sum[2] += matrix[border + k] * rgb[2];
-                }
-            }
-            for (int k = 0; k < channels; k++)
-            {
-                if (sum[k] < 0)
-                    sum[k] = 0;
-                else if (sum[k] > 255)
-                    sum[k] = 255;
-            }
-            if (channels == 1)
-                dst.at<uchar>(i, j) = static_cast<uchar>(sum[0]);
-            else if (channels == 3)
-            {
-                Vec3b rgb = { static_cast<uchar>(sum[0]), static_cast<uchar>(sum[1]), static_cast<uchar>(sum[2]) };
-                dst.at<Vec3b>(i, j) = rgb;
-            }
-        }
-    }
-    // 竖直方向
-    for (int i = border; i < rows; i++)
-    {
-        for (int j = border; j < cols; j++)
-        {
-            double sum[3] = { 0 };
-            for (int k = -border; k <= border; k++)
-            {
-                if (channels == 1)
-                {
-                    sum[0] += matrix[border + k] * dst.at<uchar>(i + k, j); // 列不变，行变化；竖直方向的卷积
-                }
-                else if (channels == 3)
-                {
-                    Vec3b rgb = dst.at<Vec3b>(i + k, j);
-                    sum[0] += matrix[border + k] * rgb[0];
-                    sum[1] += matrix[border + k] * rgb[1];
-                    sum[2] += matrix[border + k] * rgb[2];
-                }
-            }
-            for (int k = 0; k < channels; k++)
-            {
-                if (sum[k] < 0)
-                    sum[k] = 0;
-                else if (sum[k] > 255)
-                    sum[k] = 255;
-            }
-            if (channels == 1)
-                dst.at<uchar>(i, j) = static_cast<uchar>(sum[0]);
-            else if (channels == 3)
-            {
-                Vec3b rgb = { static_cast<uchar>(sum[0]), static_cast<uchar>(sum[1]), static_cast<uchar>(sum[2]) };
-                dst.at<Vec3b>(i, j) = rgb;
-            }
-        }
-    }
-    delete[] matrix;
-
-	Rect bb;
-	bb.x = ksize/2;
-	bb.y = ksize/2;
-	bb.width = src.cols;
-	bb.height = src.rows;
-	dstt = dst(bb);
-}
-
-
 double myTemplateMatch(const Mat * pTemplate,const Mat * src)
 {
 	int i, j, m, n;
@@ -252,7 +144,7 @@ double StDev(unsigned char* src, int w, int h, int mean)
 }
 
 
-int MyIntegral(unsigned char * src, int width, int height, int * dest, int * sqdest)
+int MyIntegral(const unsigned char * src, int width, int height, int * dest, int * sqdest)
 {
     int destW = width + 1;
     int destH = height + 1;

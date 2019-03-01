@@ -1,0 +1,194 @@
+diff --git a/src/TLD.cpp b/src/TLD.cpp
+index 27e33d7..693e2b8 100644
+--- a/src/TLD.cpp
++++ b/src/TLD.cpp
+@@ -195,7 +195,10 @@ void  *pth_test(void *tt)
+         count++;
+         // _this->summ++;
+         double t = (double)getTickCount();
+-        detect(dec_mat);
++        ScaleBox dbox;
++        dbox.height = dec_mat.rows;
++        dbox.width = dec_mat.cols;
++        detect(dec_mat, dbox);
+         t=(double)getTickCount()-t;
+         printf("xiangang----------------------------------->detect Run-time: %gms\n", t*1000/getTickFrequency());
+ 
+@@ -516,22 +519,18 @@ void read(const FileNode& file)
+ }
+ 
+ //此函数完成准备工作
+-void init(const Mat& frame1,const Rect& box,FILE* bb_file)
++//void init(const Mat& frame1,const Rect& box,FILE* bb_file)
++void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
+ {
+-
+-  //bb_file = fopen("bounding_boxes.txt","w");
+   //Get Bounding Boxes
+   //此函数根据传入的box（目标边界框）在传入的图像frame1中构建全部的扫描窗口，并计算重叠度
+     //rewrite buildGrid
+-    ScaleBox sbox;
+-    sbox.width = frame1.cols;
+-    sbox.height = frame1.rows;
+     BoundingBox bbox;
+     bbox.x = box.x;
+     bbox.y = box.y;
+     bbox.width = box.width;
+     bbox.height = box.height;
+-    buildGrid(sbox,bbox);
++    buildGrid(srcbox,bbox);
+     printf("Created %d bounding boxes\n",(int)grid.size());
+   ///Preparation
+   //allocation
+@@ -585,10 +584,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
+   ///Generate Data
+   // Generate positive data
+ //  generatePositiveData(frame1,num_warps_init);
+-  ScaleBox framebox;
+-  framebox.width = frame1.cols;
+-  framebox.height = frame1.rows;
+-  generatePositiveData(frame1.data, framebox, num_warps_init);
++  generatePositiveData(frame1, srcbox, num_warps_init);
+   // Set variance threshold
+ //  Scalar stdev, mean;
+   
+@@ -597,15 +593,13 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
+   //frame1(best_box)就表示在frame1中提取best_box区域（目标区域）的图像片
+ //  meanStdDev(frame1(best_box),mean,stdev);
+   Mat mbb = Mat::zeros(best_box.height, best_box.width, CV_8UC1);
+-  ScaleBox srcbox;
++
+   RectBox dstbox;
+-  srcbox.width = frame1.cols;
+-  srcbox.height = frame1.rows;
+   dstbox.x = best_box.x;
+   dstbox.y = best_box.y;
+   dstbox.width = best_box.width;
+   dstbox.height = best_box.height;
+-  imgRoi(frame1.data, srcbox, mbb.data, dstbox);
++  imgRoi(frame1, srcbox, mbb.data, dstbox);
+ 
+   int mmm = meanDev(mbb.data, mbb.cols, mbb.rows);
+   double ssss = StDev(mbb.data, mbb.cols, mbb.rows, mmm);
+@@ -617,7 +611,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
+   //并且保证运算的复杂度为O(1)。
+    // cv::integral(frame1,iisum,iisqsum);
+   
+-	MyIntegral(frame1.data, frame1.cols, frame1.rows, iis, iisq);
++    MyIntegral(frame1, srcbox.width, srcbox.height, iis, iisq);
+   
+ 	//级联分类器模块一：方差检测模块，利用积分图计算每个待检测窗口的方差，方差大于var阈值（目标patch方差的50%）的，
+   //则认为其含有前景目标方差；var 为标准差的平方
+@@ -631,10 +625,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
+   
+   // Generate negative data
+ //  generateNegativeData(frame1);
+-  ScaleBox genbox;
+-  genbox.width = frame1.cols;
+-  genbox.height = frame1.rows;
+-  generateNegativeData(frame1.data, genbox);
++  generateNegativeData(frame1, srcbox);
+   
+    //将负样本放进 训练和测试集
+   //Split Negative Ferns into Training and Testing sets (they are already shuffled)
+@@ -1186,7 +1177,8 @@ void bbPredict(const vector<cv::Point2f>& points1,const vector<cv::Point2f>& poi
+ //    printf("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
+ }
+ 
+-void detect(const cv::Mat& frame)
++//void detect(const cv::Mat& frame)
++void detect(const cv::Mat& frame, ScaleBox box)
+ {
+ //    double t111 = (double)getTickCount();
+ 
+@@ -1198,16 +1190,16 @@ void detect(const cv::Mat& frame)
+ //    double t = (double)getTickCount();
+ 
+ //    Mat img(frame.rows,frame.cols,CV_8U);
+-    img_g.create(frame.rows,frame.cols,CV_8U);
++//    img_g.create(box.height, box.width,CV_8U);
++    int img_glen = box.height * box.width;
++    unsigned char img_g[img_glen];
++    memset(img_g, 0, img_glen);
+ 
+     //integral(frame,iisum,iisqsum);
+-	
+-	// int dest[(frame.cols+1)*(frame.rows+1)];
+-	// int sqdest[(frame.cols+1)*(frame.rows+1)];
+-	MyIntegral(frame.data, frame.cols, frame.rows, iis, iisq);
++    MyIntegral(frame.data, box.width, box.height, iis, iisq);
+ 	
+     //GaussianBlur(frame, img_g, Size(9,9),1.5);
+-    myGaussian(frame.data, img_g.data, frame.cols, frame.rows, 3, 1.5);
++    myGaussian(frame.data, img_g, box.width, box.height, 3, 1.5);
+ //    img_g = frame;
+     int numtrees = classifier.getNumStructs();
+     float fern_th = classifier.getFernTh();
+@@ -1215,7 +1207,7 @@ void detect(const cv::Mat& frame)
+     float conf_pro = numtrees*fern_th;
+     float conf;
+     int a=0;
+-    Mat patch;
++//    Mat patch;
+ 
+     // printf("xiangang->grid.size:%d\n", grid.size());  
+ 
+@@ -1241,15 +1233,13 @@ void detect(const cv::Mat& frame)
+             int gridlen = grid[i].height * grid[i].width;
+             unsigned char patch[gridlen];
+             memset(patch, 0, gridlen);
+-            ScaleBox srcbox;
++
+             RectBox dstbox;
+-            srcbox.width = frame.cols;
+-            srcbox.height = frame.rows;
+             dstbox.x = grid[i].x;
+             dstbox.y = grid[i].y;
+             dstbox.width = grid[i].width;
+             dstbox.height = grid[i].height;
+-            imgRoi(frame.data, srcbox, patch, dstbox);
++            imgRoi(frame.data, box, patch, dstbox);
+ 
+ //            patch = img_g(grid[i]);
+ //            double t111 = (double)getTickCount();
+@@ -1309,7 +1299,7 @@ void detect(const cv::Mat& frame)
+     dt.isin = vector<vector<int> >(detections,vector<int>(3,-1));        //  Detected (isin=1) or rejected (isin=0) by nearest neighbour classifier
+     dt.patch = vector<Mat>(detections,Mat(patch_size,patch_size,CV_32F));//  Corresponding patches
+     int idx;
+-    Scalar mean, stdev;
++//    Scalar mean, stdev;
+     float nn_th = classifier.getNNTh();
+ 
+    // nn_th = 0.50;
+@@ -1336,22 +1326,23 @@ void detect(const cv::Mat& frame)
+         {                                        //  for every remaining detection
+             idx=dt.bb[i];                                                       //  Get the detected bounding box index
+ 
+-            patch = Mat::zeros(grid[idx].height, grid[i].width, CV_8UC1);
+-            ScaleBox srcbox;
++//            patch = Mat::zeros(grid[idx].height, grid[i].width, CV_8UC1);
++            int gridlen = grid[idx].height * grid[idx].width;
++            unsigned char patch[gridlen];
++            memset(patch, 0, gridlen);
++
+             RectBox dstbox;
+-            srcbox.width = frame.cols;
+-            srcbox.height = frame.rows;
+             dstbox.x = grid[idx].x;
+             dstbox.y = grid[idx].y;
+             dstbox.width = grid[idx].width;
+             dstbox.height = grid[idx].height;
+-            imgRoi(frame.data, srcbox, patch.data, dstbox);
++            imgRoi(frame.data, box, patch, dstbox);
+ 
+ //            patch = frame(grid[idx]);
+             ScaleBox bestbox;
+-            bestbox.width = patch.cols;
+-            bestbox.height = patch.rows;
+-            getPattern(patch.data, bestbox, dt.patch[i].data);
++            bestbox.width = grid[idx].width;
++            bestbox.height = grid[idx].height;
++            getPattern(patch, bestbox, dt.patch[i].data);
+ //            getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
+ 
+             classifier.NNConf(dt.patch[i],dt.isin[i],dt.conf1[i],dt.conf2[i]);  //  Evaluate nearest neighbour classifier
