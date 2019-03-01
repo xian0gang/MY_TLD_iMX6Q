@@ -26,7 +26,8 @@ public:
 //  void prepare(const std::vector<cv::Size>& scales);
   void prepare(const std::vector<ScaleBox>& scales);
 
-  void getFeatures(const cv::Mat& image,const int& scale_idx,std::vector<int>& fern);
+//  void getFeatures(const cv::Mat& image,const int& scale_idx,std::vector<int>& fern);
+  void getFeatures(const unsigned char* image,const int& scale_idx, vector<int>& fern, int w);
   void update(const std::vector<int>& fern, int C, int N);
   float measure_forest(std::vector<int> fern);
   void trainF(const std::vector<std::pair<std::vector<int>,int> >& ferns,int resample);
@@ -46,8 +47,12 @@ public:
           Feature(int _x1, int _y1, int _x2, int _y2)
           : x1((uchar)_x1), y1((uchar)_y1), x2((uchar)_x2), y2((uchar)_y2)
           {}
-          bool operator ()(const cv::Mat& patch) const
-          { return patch.at<uchar>(y1,x1) > patch.at<uchar>(y2, x2); }
+//          bool operator ()(const cv::Mat& patch) const
+          bool operator ()(const unsigned char * patch, int w) const
+          {
+//              return patch.at<uchar>(y1,x1) > patch.at<uchar>(y2, x2);
+              return *(patch + y1 * w + x1 ) > *(patch + y2 * w + x2 );
+          }
       };
   std::vector<std::vector<Feature> > features; //Ferns features (one std::vector for each scale)
   std::vector< std::vector<int> > nCounter; //negative counter
