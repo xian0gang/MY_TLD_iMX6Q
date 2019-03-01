@@ -77,7 +77,8 @@ void buildGrid(ScaleBox sbox, BoundingBox box);
 float bbOverlap(const BoundingBox& box1,const BoundingBox& box2);
 void getOverlappingBoxes(int num_closest);
 void getBBHull();
-void getPattern(const cv::Mat& img, cv::Mat& pattern,cv::Scalar& mean,cv::Scalar& stdev);
+//void getPattern(const cv::Mat& img, cv::Mat& pattern,cv::Scalar& mean,cv::Scalar& stdev);
+void getPattern(const unsigned char* img, ScaleBox sbox, unsigned char* pattern);
 void bbPoints(std::vector<cv::Point2f>& points, const BoundingBox& bb);
 void bbPredict(const std::vector<cv::Point2f>& points1,const std::vector<cv::Point2f>& points2,
   const BoundingBox& bb1,BoundingBox& bb2);

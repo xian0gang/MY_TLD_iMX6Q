@@ -697,7 +697,11 @@ void generatePositiveData(const Mat& frame, int num_warps)
     dstbox0.height = best_box.height;
     imgRoi(frame.data, srcbox0, mbb.data, dstbox0);
 
-    getPattern(mbb,pEx,mean,stdev);
+    ScaleBox bestbox;
+    bestbox.width = best_box.width;
+    bestbox.height = best_box.height;
+    getPattern(mbb.data, bestbox, pEx.data);
+
     //Get Fern features on warped patches
     Mat img = Mat::zeros(frame.rows, frame.cols, CV_8UC1);;
 //    Mat warped;
@@ -752,23 +756,24 @@ void generatePositiveData(const Mat& frame, int num_warps)
     printf("Positive examples generated: ferns:%d NN:1\n",(int)pX.size());
 }
 
-void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
+//void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
+void getPattern(const unsigned char* img, ScaleBox sbox, unsigned char* pattern)
 {
     //Output: resized Zero-Mean patch
 //    resize(img,pattern,Size(patch_size,patch_size));
-    my_resize(img.data, pattern.data, img.cols, img.rows, patch_size, patch_size);
+    my_resize(img, pattern, sbox.width, sbox.height, patch_size, patch_size);
 //    meanStdDev(pattern,mean,stdev);
-    int meand = meanDev(pattern.data, pattern.cols, pattern.rows);
+    int meand = meanDev(pattern, patch_size, patch_size);
 //    pattern.convertTo(pattern,CV_32F);
 //    pattern = pattern-mean.val[0];
     int i, j;
-    int h = pattern.rows;
-    int w = pattern.cols;
+    int h = patch_size;
+    int w = patch_size;
     for(i = 0; i < h; i++)
     {
         for(j = 0; j < w; j++)
         {
-            *(pattern.data + i * w + j) = *(pattern.data + i * w + j) - meand;
+            *(pattern + i * w + j) = *(pattern + i * w + j) - meand;
         }
     }
 }
@@ -836,7 +841,11 @@ void generateNegativeData(const Mat& frame)
 
 //        patch = frame(grid[idx]);
         nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
-        getPattern(patch,nEx[i],dum1,dum2);
+//        getPattern(patch,nEx[i],dum1,dum2);
+        ScaleBox bestbox;
+        bestbox.width = patch.cols;
+        bestbox.height = patch.rows;
+        getPattern(patch.data, bestbox, nEx[i].data);
     }
     printf("NN: %d\n",(int)nEx.size());
 }
@@ -1309,8 +1318,11 @@ void detect(const cv::Mat& frame)
             imgRoi(frame.data, srcbox, patch.data, dstbox);
 
 //            patch = frame(grid[idx]);
-            
-            getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
+            ScaleBox bestbox;
+            bestbox.width = patch.cols;
+            bestbox.height = patch.rows;
+            getPattern(patch.data, bestbox, dt.patch[i].data);
+//            getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
 
             classifier.NNConf(dt.patch[i],dt.isin[i],dt.conf1[i],dt.conf2[i]);  //  Evaluate nearest neighbour classifier
 //            dt.patt[i]=tmp.patt[idx];

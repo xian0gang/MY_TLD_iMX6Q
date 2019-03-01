@@ -12,3 +12,5 @@ lib/
 *.user
 *.files
 *.includes
+*.cpp~
+*.h~
