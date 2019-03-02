@@ -718,7 +718,7 @@ void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warp
     memset(img, 0, img_len);
 //    Mat warped;
     //GaussianBlur(frame,img,Size(9,9),1.5);
-    myGaussian(frame, img, box.width, box.height, 3, 1.5);
+    myGaussian(frame, img, box.width, box.height, 9, 1.5);
 //    img=frame;
 
 //    Mat warped = Mat::zeros(bbhull.height, bbhull.width, CV_8UC1);
@@ -1203,7 +1203,7 @@ void detect(const unsigned char* frame, ScaleBox box)
     MyIntegral(frame, box.width, box.height, iis, iisq);
 	
     //GaussianBlur(frame, img_g, Size(9,9),1.5);
-    myGaussian(frame, img_g, box.width, box.height, 3, 1.5);
+    myGaussian(frame, img_g, box.width, box.height, 9, 1.5);
 //    img_g = frame;
     int numtrees = classifier.getNumStructs();
     float fern_th = classifier.getFernTh();
