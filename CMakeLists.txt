@@ -8,8 +8,8 @@ SET(CMAKE_C_FLAGS "$ENV{CFLAGS} -O3 -Wall -g")
 #set(CMAKE_CXX_COMPILE "arm-none-linux-gnueabi-g++")
 
 #add c++11
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -O2 -Wall -g")
-SET(CMAKE_C_FLAGS "$ENV{CFLAGS} -O2 -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -O2 -Wall -g -march=armv7-a -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard")
+SET(CMAKE_C_FLAGS "$ENV{CFLAGS} -O2 -Wall -g -march=armv7-a -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard")
 
 SET(CMAKE_SYSTEM_NAME Linux)
 SET(TOOLCHAIN_DIR "/home/xiangang/xiangang/arm-linux-gcc/gcc-4.6.2-glibc-2.13-linaro-multilib-2011.12/fsl-linaro-toolchain")

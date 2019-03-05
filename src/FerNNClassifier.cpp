@@ -64,9 +64,12 @@ void FerNNClassifier::prepare(const vector<ScaleBox>& scales)
   //Initialize Posteriors
   for (int i = 0; i<nstructs; i++) 
   {
-      posteriors.push_back(vector<float>(pow(2.0,structSize), 0));
-      pCounter.push_back(vector<int>(pow(2.0,structSize), 0));
-      nCounter.push_back(vector<int>(pow(2.0,structSize), 0));
+//      posteriors.push_back(vector<float>(pow(2.0,structSize), 0));
+//      pCounter.push_back(vector<int>(pow(2.0,structSize), 0));
+//      nCounter.push_back(vector<int>(pow(2.0,structSize), 0));
+      posteriors.push_back(vector<float>(8192 , 0));
+      pCounter.push_back(vector<int>(8192, 0));
+      nCounter.push_back(vector<int>(8192, 0));
   }
 }
 
@@ -180,7 +183,7 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
       csconf=1;
       return;
   }
-  // Mat ncc(1,1,CV_32F);
+//   Mat ncc(1,1,CV_32F/*CV_8UC1*/);
   float nccP,csmaxP,maxP=0;
   bool anyP=false;
   int maxPidx,validatedPart = ceil(pEx.size()*valid);
@@ -192,10 +195,14 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
 
   for (int i=0;i<pEx.size();i++)
   {
-      //matchTemplate(pEx[i],example,ncc,CV_TM_CCORR_NORMED);      // measure NCC to positive examples
-      //nccP=(((float*)ncc.data)[0]+1)*0.5;
-	  double ss = myTemplateMatch(&pEx[i],&example);
-	  nccP=(((float)ss)+1)*0.5;
+//      imwrite("pex1.bmp",pEx[i]);
+//      imwrite("example1.bmp",example);
+//      matchTemplate(pEx[i],example,ncc,CV_TM_CCORR_NORMED);      // measure NCC to positive examples
+//      nccP=(((float*)ncc.data)[0]+1)*0.5;
+      double ss = myTemplateMatch(&pEx[i],&example);
+//      printf("ss:%f   ncc:%f\n", ss, ((float*)ncc.data)[0]);
+//      printf("ncc:%f\n", ((float*)ncc.data)[0]);
+      nccP=(((float)ss)+1)*0.5;
       if (nccP>ncc_thesame)
         anyP=true;
       if(nccP > maxP){
@@ -213,10 +220,11 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
 // printf("xiangang->nEx.size():%d\n", nEx.size());
   for (int i=0;i<nEx.size();i++)
   {
-      //matchTemplate(nEx[i],example,ncc,CV_TM_CCORR_NORMED);     //measure NCC to negative examples
-      //nccN=(((float*)ncc.data)[0]+1)*0.5;
-	  double ss = myTemplateMatch(&nEx[i],&example);
-	  nccN=(((float)ss)+1)*0.5;
+//      matchTemplate(nEx[i],example,ncc,CV_TM_CCORR_NORMED);     //measure NCC to negative examples
+//      nccN=(((float*)ncc.data)[0]+1)*0.5;
+      double ss = myTemplateMatch(&nEx[i],&example);
+//      printf("nEx:%f\n", ss);
+      nccN=(((float)ss)+1)*0.5;
       if (nccN>ncc_thesame)
         anyN=true;
       if(nccN > maxN)
@@ -239,13 +247,15 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
   csconf =(float)dN / (dN + dP);
 }
 
-void FerNNClassifier::evaluateTh(const vector<pair<vector<int>,int> >& nXT,const vector<cv::Mat>& nExT){
-float fconf;
-  for (int i=0;i<nXT.size();i++){
-    fconf = (float) measure_forest(nXT[i].first)/nstructs;
-    if (fconf>thr_fern)
-      thr_fern=fconf;
-}
+void FerNNClassifier::evaluateTh(const vector<pair<vector<int>,int> >& nXT,const vector<cv::Mat>& nExT)
+{
+    float fconf;
+    for (int i=0;i<nXT.size();i++)
+    {
+        fconf = (float) measure_forest(nXT[i].first)/nstructs;
+        if (fconf>thr_fern)
+            thr_fern=fconf;
+    }
   vector <int> isin;
   float conf,dummy;
   for (int i=0;i<nExT.size();i++){

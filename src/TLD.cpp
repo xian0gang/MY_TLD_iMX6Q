@@ -557,7 +557,7 @@ void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
   bad_boxes.reserve(grid.size());
   
   //TLD中定义：cv::Mat pEx;  //positive NN example 大小为15*15图像片
-  pEx.create(patch_size,patch_size,CV_64F);
+  pEx.create(patch_size,patch_size,/*CV_64F*/CV_8UC1);
   //Init Generator
 //  generator = PatchGenerator(0,0,noise_init,true,1-scale_init,1+scale_init,-angle_init*CV_PI/180,angle_init*CV_PI/180,-angle_init*CV_PI/180,angle_init*CV_PI/180);
   
@@ -619,7 +619,8 @@ void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
   
 	//级联分类器模块一：方差检测模块，利用积分图计算每个待检测窗口的方差，方差大于var阈值（目标patch方差的50%）的，
   //则认为其含有前景目标方差；var 为标准差的平方
-  var = pow(ssss,2)*0.5; //getVar(best_box,iisum,iisqsum);
+//  var = pow(ssss,2)*0.5; //getVar(best_box,iisum,iisqsum);
+    var = ssss*ssss*0.5; //getVar(best_box,iisum,iisqsum);
   cout << "variance: " << var << endl;
   
   //check variance
@@ -772,15 +773,20 @@ void generatePositiveData(const unsigned char* frame, ScaleBox box, int num_warp
 }
 
 //void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
-void getPattern(const unsigned char* img, ScaleBox sbox, unsigned char* pattern)
+void getPattern(const unsigned char* img, ScaleBox sbox, unsigned char* pattern/*Mat& pattern*/)
 {
     //Output: resized Zero-Mean patch
+//    Scalar mean, stdev;
+
+//    pattern    = Mat::zeros(patch_size, patch_size, CV_8UC1);
 //    resize(img,pattern,Size(patch_size,patch_size));
     my_resize(img, pattern, sbox.width, sbox.height, patch_size, patch_size);
 //    meanStdDev(pattern,mean,stdev);
     int meand = meanDev(pattern, patch_size, patch_size);
+//    printf("meand:%d\n", meand);
+//    printf("mean.val[0]:%d %f\n", mean.val[0], mean.val[0]);
 //    pattern.convertTo(pattern,CV_32F);
-//    pattern = pattern-mean.val[0];
+//    pattern = pattern-mean.val[0]/*meand*/;
     int i, j;
     int h = patch_size;
     int w = patch_size;
@@ -1044,6 +1050,9 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     ///learn 学习模块
     // if (lastvalid && tl)
     // 	learn(img2);
+
+    vector<float>(cconf).swap(cconf);
+    vector<BoundingBox>(cbb).swap(cbb);
 }
 
 
@@ -1118,13 +1127,14 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 		printf("No points tracked\n");
 
     // printf("xiangang->track->summ:%d\n", summ);
-
+    vector<Point2f>(points).swap(points);
+//	vector<BoundingBox>(cbb).swap(cbb);
 }
 
 //网格均匀撒点，box共10*10=100个特征点
 void bbPoints(vector<cv::Point2f>& points,const BoundingBox& bb)
 {
-    int max_pts = 5;
+    int max_pts = 10;
     int margin_h = 0;
     int margin_v = 0;
     int stepx = ceil((bb.width-2*margin_h)/max_pts);
@@ -1174,11 +1184,55 @@ void bbPredict(const vector<cv::Point2f>& points1,const vector<cv::Point2f>& poi
     float s1 = 0.5*(s-1)*bb1.width;
     float s2 = 0.5*(s-1)*bb1.height;
     printf("s= %f s1= %f s2= %f \n",s,s1,s2);
-    bb2.x = round( bb1.x + dx -s1);
-    bb2.y = round( bb1.y + dy -s2);
-    bb2.width = round(bb1.width*s);
-    bb2.height = round(bb1.height*s);
+//    在6q硬件浮点加速下，四舍五入失效，用下面代码替代，不加速可以使用
+//    bb2.x = round( bb1.x + dx -s1);
+//    bb2.y = round( bb1.y + dy -s2);
+//    bb2.width = round(bb1.width*s);
+//    bb2.height = round(bb1.height*s);
 //    printf("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
+
+    int temp =  (int)( (bb1.x + dx -s1) * 10);
+    if(temp%10 >= 5)
+    {
+        bb2.x = (int)( bb1.x + dx -s1) + 1;
+    }
+    else
+    {
+        bb2.x = (int)( bb1.x + dx -s1);
+    }
+
+    int temp1 =  (int)( (bb1.y + dy -s2) * 10);
+    if(temp1%10 >= 5)
+    {
+        bb2.y = (int)( bb1.y + dy -s2) + 1;
+    }
+    else
+    {
+        bb2.y = (int)( bb1.y + dy -s2);
+    }
+
+    int temp2 =  (int)( (bb1.width*s) * 10);
+    if(temp2%10 >= 5)
+    {
+        bb2.width = (int)(bb1.width*s) + 1;
+    }
+    else
+    {
+        bb2.width = (int)(bb1.width*s);
+    }
+
+    int temp3 =  (int)( (bb1.height*s) * 10);
+    if(temp3%10 >= 5)
+    {
+        bb2.height = (int)(bb1.height*s) + 1;
+    }
+    else
+    {
+        bb2.height = (int)(bb1.height*s);
+    }
+
+    vector<float>(xoff).swap(xoff);
+    vector<float>(yoff).swap(xoff);
 }
 
 //void detect(const cv::Mat& frame)
@@ -1209,6 +1263,7 @@ void detect(const unsigned char* frame, ScaleBox box)
     float fern_th = classifier.getFernTh();
     vector <int> ferns(10);
     float conf_pro = numtrees*fern_th;
+    printf("   yuzhi:%f  \n", conf_pro);
     float conf;
     int a=0;
 //    Mat patch;
@@ -1307,7 +1362,7 @@ void detect(const unsigned char* frame, ScaleBox box)
     float nn_th = classifier.getNNTh();
 
    // nn_th = 0.50;
-    double t333 = (double)getTickCount();
+//    double t333 = (double)getTickCount();
 //lock 
 //    if(detections > 1)
 //    {
@@ -1346,13 +1401,14 @@ void detect(const unsigned char* frame, ScaleBox box)
             ScaleBox bestbox;
             bestbox.width = grid[idx].width;
             bestbox.height = grid[idx].height;
+            dt.patch[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);;
             getPattern(patch, bestbox, dt.patch[i].data);
 //            getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
 
             classifier.NNConf(dt.patch[i],dt.isin[i],dt.conf1[i],dt.conf2[i]);  //  Evaluate nearest neighbour classifier
 //            dt.patt[i]=tmp.patt[idx];
             //printf("Testing feature %d, conf:%f isin:(%d|%d|%d)\n",i,dt.conf1[i],dt.isin[i][0],dt.isin[i][1],dt.isin[i][2]);
-printf("dt.conf1[%d]:%f\n", i, dt.conf1[i]);
+//printf("dt.conf1[%d]:%f\n", i, dt.conf1[i]);
             if (dt.conf1[i]>nn_th)
             {                                               //  idx = dt.conf1 > tld.model.thr_nn; % get all indexes that made it through the nearest neighbour
 //                BoundingBox temp;
@@ -1398,6 +1454,8 @@ printf("dt.conf1[%d]:%f\n", i, dt.conf1[i]);
 //	maxx_num = 0;
 //	sec_max_num = 0;
 //	th_max_num = 0;
+
+    vector<int>(ferns).swap(ferns);
 }
 
 void evaluate()

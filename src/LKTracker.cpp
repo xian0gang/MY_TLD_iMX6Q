@@ -54,9 +54,9 @@ bool LKTracker::trackf2f(const Mat& img1, const Mat& img2,vector<Point2f> &point
 //行模板匹配（调用matchTemplate）
 void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Point2f>& points1, vector<Point2f>& points2) 
 {
-	Mat rec0(10,10,CV_8U);
-	Mat rec1(10,10,CV_8U);
-	Mat res(1,1,CV_32F);
+    Mat rec0(10,10,CV_8U);
+    Mat rec1(10,10,CV_8U);
+    Mat res(1,1,CV_32F);
 
 	for (int i = 0; i < points1.size(); i++) 
 	{
@@ -69,11 +69,13 @@ void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Poi
 			//匹配前一帧和当前帧中提取的10x10象素矩形，得到匹配后的映射图像
 			//CV_TM_CCOEFF_NORMED 归一化相关系数匹配法
 			//参数分别为：欲搜索的图像。搜索模板。比较结果的映射图像。指定匹配方法
-			//matchTemplate( rec0,rec1, res, CV_TM_CCOEFF_NORMED);
+//            matchTemplate( rec0,rec1, res, CV_TM_CCOEFF_NORMED);
 			
-			//similarity[i] = ((float *)(res.data))[0];//得到各个特征点的相似度大小
-			double ss = myTemplateMatch(&rec0,&rec1);
-			similarity[i] = ((float )(ss));//得到各个特征点的相似度大小
+//            similarity[i] = ((float *)(res.data))[0];//得到各个特征点的相似度大小
+            double ss = myTemplateMatch(&rec0,&rec1);
+            similarity[i] = ((float )(ss));//得到各个特征点的相似度大小
+//            printf("ss:%f\n", ((float )(ss)));
+//            printf("res:%f\n", ((float *)(res.data))[0]);
 
 		} 
 		else 
@@ -81,9 +83,9 @@ void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Poi
 			similarity[i] = 0.0;
 		}
 	}
-	rec0.release();
-	rec1.release();
-	res.release();
+    rec0.release();
+    rec1.release();
+    res.release();
 }
 
 
