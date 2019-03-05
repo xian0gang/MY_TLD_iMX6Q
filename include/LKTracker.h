@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 
 using namespace std;
-
+/*
 //使用金字塔LK光流法跟踪，
 //所以类的成员变量很多都是OpenCV中calcOpticalFlowPyrLK()函数的参数
 class LKTracker{
@@ -29,3 +29,4 @@ public:
   float getFB(){return fbmed;}
 };
 
+*/

@@ -39,7 +39,7 @@ vector<int> index_shuffle(int begin,int end)
 	return indexes;
 }
 
-double myTemplateMatch(const Mat * pTemplate,const Mat * src)
+double myTemplateMatch(const MyMat * pTemplate, const MyMat * src, int w, int h)
 {
 	int i, j, m, n;
 	double dSumT; //Ä£°åÔªËØµÄÆœ·œºÍ
@@ -51,11 +51,11 @@ double myTemplateMatch(const Mat * pTemplate,const Mat * src)
 	//×îŽóÏìÓŠ³öÏÖÎ»ÖÃ
 	int nMaxX;
 	int nMaxY;
-	int nHeight = src->rows;
-	int nWidth = src->cols;
+    int nHeight = /*src->rows*/ h;
+    int nWidth = /*src->cols*/ w;
 	//Ä£°åµÄžß¡¢¿í
-	int nTplHeight = pTemplate->rows;
-	int nTplWidth = pTemplate->cols;
+    int nTplHeight = /*pTemplate->rows*/ h;
+    int nTplWidth = /*pTemplate->cols*/ w;
 
 	//ŒÆËã dSumT
 	dSumT = 0;
@@ -64,7 +64,7 @@ double myTemplateMatch(const Mat * pTemplate,const Mat * src)
 		for (n = 0; n < nTplWidth; n++)
 		{
 			// Ä£°åÍŒÏñµÚmÐÐ£¬µÚnžöÏóËØµÄ»Ò¶ÈÖµ
-			int nGray =*pTemplate->ptr(m, n);
+            int nGray =/**pTemplate->ptr(m, n)*/ *(pTemplate->data + m * nTplWidth + n);
 			dSumT += (double)nGray*nGray;
 		}
 	}
@@ -83,10 +83,10 @@ double myTemplateMatch(const Mat * pTemplate,const Mat * src)
 				{
 
 					// Ô­ÍŒÏñµÚi+mÐÐ£¬µÚj+nÁÐÏóËØµÄ»Ò¶ÈÖµ
-					int nGraySrc = *src->ptr(i + m, j + n);
+                    int nGraySrc = /**src->ptr(i + m, j + n)*/ *(src->data + (i + m) * nTplWidth + j + n);
 
 					// Ä£°åÍŒÏñµÚmÐÐ£¬µÚnžöÏóËØµÄ»Ò¶ÈÖµ
-					int nGrayTpl = *pTemplate->ptr(m, n);
+                    int nGrayTpl = /**pTemplate->ptr(m, n)*/ *(pTemplate->data + m * nTplWidth + n);
 					dSumS += (double)nGraySrc*nGraySrc;
 					dSumST += (double)nGraySrc*nGrayTpl;
 				}

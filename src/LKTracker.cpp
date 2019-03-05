@@ -2,7 +2,7 @@
 #include <vector>
 #include <tld_utils.h>
 using namespace cv;
-
+/*
 //金字塔LK光流法跟踪
 //Media Flow 中值光流跟踪 加 跟踪错误检测
 //构造函数，初始化成员变量
@@ -54,9 +54,11 @@ bool LKTracker::trackf2f(const Mat& img1, const Mat& img2,vector<Point2f> &point
 //行模板匹配（调用matchTemplate）
 void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Point2f>& points1, vector<Point2f>& points2) 
 {
-    Mat rec0(10,10,CV_8U);
-    Mat rec1(10,10,CV_8U);
-    Mat res(1,1,CV_32F);
+//    Mat rec0(10,10,CV_8U);
+//    Mat rec1(10,10,CV_8U);
+//    Mat res(1,1,CV_32F);
+    MyMat rec0;
+    MyMat rec1;
 
 	for (int i = 0; i < points1.size(); i++) 
 	{
@@ -65,14 +67,20 @@ void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Poi
 			//从前一帧和当前帧图像中（以每个特征点为中心？）提取10x10象素矩形，使用亚象素精度
 			getRectSubPix( img1, Size(10,10), points1[i],rec0 );
 			getRectSubPix( img2, Size(10,10), points2[i],rec1);
-			
+            ScaleBox sbox;
+            sbox.height = img1.rows;
+            sbox.width = img1.cols;
+            RectBox rbox;
+            rbox.x =
+            imgRoi(img1.data, sbox, rec0.data, );
 			//匹配前一帧和当前帧中提取的10x10象素矩形，得到匹配后的映射图像
 			//CV_TM_CCOEFF_NORMED 归一化相关系数匹配法
 			//参数分别为：欲搜索的图像。搜索模板。比较结果的映射图像。指定匹配方法
 //            matchTemplate( rec0,rec1, res, CV_TM_CCOEFF_NORMED);
 			
 //            similarity[i] = ((float *)(res.data))[0];//得到各个特征点的相似度大小
-            double ss = myTemplateMatch(&rec0,&rec1);
+            double ss = myTemplateMatch(&rec0,&rec1, 10, 10);
+
             similarity[i] = ((float )(ss));//得到各个特征点的相似度大小
 //            printf("ss:%f\n", ((float )(ss)));
 //            printf("res:%f\n", ((float *)(res.data))[0]);
@@ -83,9 +91,9 @@ void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Poi
 			similarity[i] = 0.0;
 		}
 	}
-    rec0.release();
-    rec1.release();
-    res.release();
+//    rec0.release();
+//    rec1.release();
+//    res.release();
 }
 
 
@@ -128,7 +136,7 @@ bool LKTracker::filterPts(vector<Point2f>& points1,vector<Point2f>& points2){
 }
 
 
-
+*/
 
 /*
  * old OpenCV style

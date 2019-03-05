@@ -10,8 +10,8 @@
 using namespace cv;
 using namespace std;
 
-cv::Mat iisum;
-cv::Mat iisqsum;
+//cv::Mat iisum;
+//cv::Mat iisqsum;
 
 int iis[721*577];
 int iisq[721*577];
@@ -53,7 +53,7 @@ int grid_count;
 int track_count;
 
 FerNNClassifier classifier;
-LKTracker tracker;
+//LKTracker tracker;
 cv::PatchGenerator generator;
   //Bounding Boxes
 std::vector<BoundingBox> grid;
@@ -70,11 +70,16 @@ float var;
 //Training data
 std::vector<std::pair<std::vector<int>,int> > pX; //positive ferns <features,labels=1>
 std::vector<std::pair<std::vector<int>,int> > nX; // negative ferns <features,labels=0>
-cv::Mat pEx;  //positive NN example
-std::vector<cv::Mat> nEx; //negative NN examples
+
+//cv::Mat pEx;  //positive NN example
+//std::vector<cv::Mat> nEx; //negative NN examples
+MyMat pEx;
+std::vector<MyMat> nEx;
+
 //Test data
 std::vector<std::pair<std::vector<int>,int> > nXT; //negative data to Test
-std::vector<cv::Mat> nExT; //negative NN examples to Test
+std::vector<MyMat> nExT; //negative NN examples to Test
+
 //Last frame data
 BoundingBox lastbox;
 bool lastvalid;
@@ -557,7 +562,7 @@ void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
   bad_boxes.reserve(grid.size());
   
   //TLD中定义：cv::Mat pEx;  //positive NN example 大小为15*15图像片
-  pEx.create(patch_size,patch_size,/*CV_64F*/CV_8UC1);
+//  pEx.create(patch_size,patch_size,/*CV_64F*/CV_8UC1);
   //Init Generator
 //  generator = PatchGenerator(0,0,noise_init,true,1-scale_init,1+scale_init,-angle_init*CV_PI/180,angle_init*CV_PI/180,-angle_init*CV_PI/180,angle_init*CV_PI/180);
   
@@ -662,7 +667,7 @@ void init(const unsigned char* frame1, ScaleBox srcbox, const Rect& box)
       a++;
   }
   //Data already have been shuffled, just putting it in the same vector
-  vector<cv::Mat> nn_data(nEx.size()+1);
+  vector<MyMat> nn_data(nEx.size()+1);
   nn_data[0] = pEx;
   for (int i=0;i<nEx.size();i++){
       nn_data[i+1]= nEx[i];
@@ -848,7 +853,7 @@ void generateNegativeData(const unsigned char* frame, ScaleBox box)
     printf("Negative examples generated: ferns: %d ",a);
     //random_shuffle(bad_boxes.begin(),bad_boxes.begin()+bad_patches);//Randomly selects 'bad_patches' and get the patterns for NN;
 //    Scalar dum1, dum2;
-    nEx=vector<Mat>(bad_patches);
+    nEx=vector<MyMat>(bad_patches);
     for (int i=0;i<bad_patches;i++)
     {
         idx=bad_boxes[i];
@@ -868,7 +873,7 @@ void generateNegativeData(const unsigned char* frame, ScaleBox box)
         imgRoi(frame, box, patch, dstbox);
 
 //        patch = frame(grid[idx]);
-        nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
+//        nEx[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);
 //        getPattern(patch,nEx[i],dum1,dum2);
         ScaleBox bestbox;
         bestbox.width = grid[idx].width;
@@ -878,20 +883,6 @@ void generateNegativeData(const unsigned char* frame, ScaleBox box)
     printf("NN: %d\n",(int)nEx.size());
 }
 
-int getVar(const BoundingBox& box,const Mat& sum,const Mat& sqsum)
-{
-    int brs1 = sum.at<int>(box.y+box.height,box.x+box.width);
-    int bls1 = sum.at<int>(box.y+box.height,box.x);
-    int trs1 = sum.at<int>(box.y,box.x+box.width);
-    int tls1 = sum.at<int>(box.y,box.x);
-    int brsq1 = sqsum.at<double>(box.y+box.height,box.x+box.width);
-    int blsq1 = sqsum.at<double>(box.y+box.height,box.x);
-    int trsq1 = sqsum.at<double>(box.y,box.x+box.width);
-    int tlsq1 = sqsum.at<double>(box.y,box.x);
-    int mean1 = (brs1+tls1-trs1-bls1)/(box.height*box.width);
-    int sqmean1 = (brsq1+tlsq1-trsq1-blsq1)/(box.height*box.width);
-    return sqmean1-mean1*mean1;
-}
 
 int MyGetVar(const BoundingBox& box,const int* sum,const int* sqsum)
 {
@@ -940,7 +931,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
 
         //跟踪
         double t = (double)getTickCount();
-        track(re_img1,dec_mat,points1,points2);
+        //track(re_img1,dec_mat,points1,points2);
         t=(double)getTickCount()-t;
         printf("xiangang----------------------------------->track Run-time: %gms\n", t*1000/getTickFrequency());
     }
@@ -1055,7 +1046,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     vector<BoundingBox>(cbb).swap(cbb);
 }
 
-
+/*
 void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Point2f>& points2)
 {
 	/*Inputs:
@@ -1065,6 +1056,7 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 	*/
 	//Generate points
 	//网格均匀撒点（均匀采样），在lastbox中共产生最多10*10=100个特征点，存于points
+/*
 	bbPoints(points1,lastbox);
 	if (points1.size()<1)
 	{
@@ -1089,8 +1081,8 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 		//跟踪失败检测：如果FB error的中值大于10个像素（经验值），或者预测到的当前box的位置移出图像，则
 		//认为跟踪错误，此时不返回bounding box；Rect::br()返回的是右下角的坐标
 		//getFB()返回的是FB error的中值
-        if (tracker.getFB()>10 || tbb.x>img2.cols ||  tbb.y>img2.rows || /*tbb.br().x*/tbb.x + tbb.width < 1 || /*tbb.br().y*/tbb.y + tbb.height <1)
-		{
+        if (tracker.getFB()>10 || tbb.x>img2.cols ||  tbb.y>img2.rows || /*tbb.br().x*///tbb.x + tbb.width < 1 || /*tbb.br().y*/tbb.y + tbb.height <1)
+        /*{
 			tvalid =false; //too unstable prediction or bounding box out of image
 			tracked = false;
 			printf("Too unstable predictions FB error=%f\n",tracker.getFB());
@@ -1122,7 +1114,8 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 			tvalid =true;
 		}
 		*/
-	}
+    //}
+        /*
 	else
 		printf("No points tracked\n");
 
@@ -1130,7 +1123,7 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
     vector<Point2f>(points).swap(points);
 //	vector<BoundingBox>(cbb).swap(cbb);
 }
-
+*/
 //网格均匀撒点，box共10*10=100个特征点
 void bbPoints(vector<cv::Point2f>& points,const BoundingBox& bb)
 {
@@ -1356,7 +1349,7 @@ void detect(const unsigned char* frame, ScaleBox box)
     dt.conf1 = vector<float>(detections);                                //  Relative Similarity (for final nearest neighbour classifier)
     dt.conf2 =vector<float>(detections);                                 //  Conservative Similarity (for integration with tracker)
     dt.isin = vector<vector<int> >(detections,vector<int>(3,-1));        //  Detected (isin=1) or rejected (isin=0) by nearest neighbour classifier
-    dt.patch = vector<Mat>(detections,Mat(patch_size,patch_size,CV_32F));//  Corresponding patches
+    dt.patch = vector<MyMat>(detections/*,Mat(patch_size,patch_size,CV_32F)*/);//  Corresponding patches
     int idx;
 //    Scalar mean, stdev;
     float nn_th = classifier.getNNTh();
@@ -1401,7 +1394,7 @@ void detect(const unsigned char* frame, ScaleBox box)
             ScaleBox bestbox;
             bestbox.width = grid[idx].width;
             bestbox.height = grid[idx].height;
-            dt.patch[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);;
+//            dt.patch[i] = Mat::zeros(patch_size, patch_size, CV_8UC1);;
             getPattern(patch, bestbox, dt.patch[i].data);
 //            getPattern(patch,dt.patch[i],mean,stdev);                //  Get pattern within bounding box
 

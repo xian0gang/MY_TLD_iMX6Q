@@ -3,6 +3,10 @@
 
 using namespace cv;
 using namespace std;
+//金字塔 缩放倍数
+#define MULTIPLE 4
+//模板大小
+#define PATCH_SIZE 15
 
 struct ScaleBox
 {
@@ -28,7 +32,13 @@ struct BoundingBox
     int sidx;             //scale index
 };
 
-#define MULTIPLE 4
+struct MyMat
+{
+    unsigned char data[PATCH_SIZE*PATCH_SIZE];
+};
+
+
+
 
 void drawBox(cv::Mat& image, CvRect box, cv::Scalar color = cvScalarAll(255), int thick=1); 
 
@@ -39,7 +49,7 @@ cv::Mat createMask(const cv::Mat& image, CvRect box);
 float median(std::vector<float> v);
 
 std::vector<int> index_shuffle(int begin,int end);
-double myTemplateMatch(const Mat * pTemplate,const Mat * src);
+double myTemplateMatch(const MyMat * pTemplate,const MyMat * src, int w, int h);
 int MyIntegral(const unsigned char * src, int width, int height, int * dest, int * sqdest);
 double StDev(unsigned char* src, int w, int h, int mean);
 int meanDev(unsigned char* src, int w, int h);

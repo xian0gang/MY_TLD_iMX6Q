@@ -31,10 +31,10 @@ public:
   void update(const std::vector<int>& fern, int C, int N);
   float measure_forest(std::vector<int> fern);
   void trainF(const std::vector<std::pair<std::vector<int>,int> >& ferns,int resample);
-  void trainNN(const std::vector<cv::Mat>& nn_examples);
-  void NNConf(const cv::Mat& example,std::vector<int>& isin,float& rsconf,float& csconf);
-  void evaluateTh(const std::vector<std::pair<std::vector<int>,int> >& nXT,const std::vector<cv::Mat>& nExT);
-  void show();
+  void trainNN(const std::vector<MyMat>& nn_examples);
+  void NNConf(const MyMat& example,std::vector<int>& isin,float& rsconf,float& csconf);
+  void evaluateTh(const std::vector<std::pair<std::vector<int>,int> >& nXT,const std::vector<MyMat>& nExT);
+  //void show();
   void clear(); 
   //Ferns Members
   int getNumStructs(){return nstructs;}
@@ -61,6 +61,6 @@ public:
   float thrN; //Negative threshold
   float thrP;  //Positive thershold
   //NN Members
-  std::vector<cv::Mat> pEx; //NN positive examples
-  std::vector<cv::Mat> nEx; //NN negative examples
+  std::vector<MyMat> pEx; //NN positive examples
+  std::vector<MyMat> nEx; //NN negative examples
 };

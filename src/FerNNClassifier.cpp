@@ -138,7 +138,7 @@ void FerNNClassifier::trainF(const vector<std::pair<vector<int>,int> >& ferns,in
   //}
 }
 
-void FerNNClassifier::trainNN(const vector<cv::Mat>& nn_examples){
+void FerNNClassifier::trainNN(const vector<MyMat>& nn_examples){
   float conf,dummy;
   vector<int> y(nn_examples.size(),0);
   y[0]=1;
@@ -147,7 +147,7 @@ void FerNNClassifier::trainNN(const vector<cv::Mat>& nn_examples){
       NNConf(nn_examples[i],isin,conf,dummy);                      //  Measure Relative similarity
       if (y[i]==1 && conf<=thr_nn){                                //    if y(i) == 1 && conf1 <= tld.model.thr_nn % 0.65
           if (isin[1]<0){                                          //      if isnan(isin(2))
-              pEx = vector<Mat>(1,nn_examples[i]);                 //        tld.pex = x(:,i);
+              pEx = vector<MyMat>(1,nn_examples[i]);                 //        tld.pex = x(:,i);
               continue;                                            //        continue;
           }                                                        //      end
           //pEx.insert(pEx.begin()+isin[1],nn_examples[i]);        //      tld.pex = [tld.pex(:,1:isin(2)) x(:,i) tld.pex(:,isin(2)+1:end)]; % add to model
@@ -162,7 +162,7 @@ void FerNNClassifier::trainNN(const vector<cv::Mat>& nn_examples){
 }                                                                  //  end
 
 
-void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf,float& csconf){
+void FerNNClassifier::NNConf(const MyMat& example, vector<int>& isin,float& rsconf,float& csconf){
   /*Inputs:
    * -NN Patch
    * Outputs:
@@ -199,7 +199,7 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
 //      imwrite("example1.bmp",example);
 //      matchTemplate(pEx[i],example,ncc,CV_TM_CCORR_NORMED);      // measure NCC to positive examples
 //      nccP=(((float*)ncc.data)[0]+1)*0.5;
-      double ss = myTemplateMatch(&pEx[i],&example);
+      double ss = myTemplateMatch(&pEx[i],&example, PATCH_SIZE, PATCH_SIZE);
 //      printf("ss:%f   ncc:%f\n", ss, ((float*)ncc.data)[0]);
 //      printf("ncc:%f\n", ((float*)ncc.data)[0]);
       nccP=(((float)ss)+1)*0.5;
@@ -222,7 +222,7 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
   {
 //      matchTemplate(nEx[i],example,ncc,CV_TM_CCORR_NORMED);     //measure NCC to negative examples
 //      nccN=(((float*)ncc.data)[0]+1)*0.5;
-      double ss = myTemplateMatch(&nEx[i],&example);
+      double ss = myTemplateMatch(&nEx[i],&example, PATCH_SIZE, PATCH_SIZE);
 //      printf("nEx:%f\n", ss);
       nccN=(((float)ss)+1)*0.5;
       if (nccN>ncc_thesame)
@@ -247,7 +247,7 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
   csconf =(float)dN / (dN + dP);
 }
 
-void FerNNClassifier::evaluateTh(const vector<pair<vector<int>,int> >& nXT,const vector<cv::Mat>& nExT)
+void FerNNClassifier::evaluateTh(const vector<pair<vector<int>,int> >& nXT,const vector<MyMat>& nExT)
 {
     float fconf;
     for (int i=0;i<nXT.size();i++)
@@ -266,7 +266,7 @@ void FerNNClassifier::evaluateTh(const vector<pair<vector<int>,int> >& nXT,const
   if (thr_nn>thr_nn_valid)
     thr_nn_valid = thr_nn;
 }
-
+/*
 void FerNNClassifier::show(){
   Mat examples((int)pEx.size()*pEx[0].rows,pEx[0].cols,CV_8U);
   double minval;
@@ -280,3 +280,4 @@ void FerNNClassifier::show(){
   }
   imshow("Examples",examples);
 }
+*/
